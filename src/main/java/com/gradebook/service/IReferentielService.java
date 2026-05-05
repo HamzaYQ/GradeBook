@@ -35,6 +35,16 @@ public interface IReferentielService {
 
     List<Matiere> getMatieresByEnseignantAndClasse(int idEnseignant, int idClasse);
 
+    void ajouterMatiereAClasse(int idClasse, int idMatiere);
+
+    void retirerMatiereDeClasse(int idClasse, int idMatiere);
+
+    List<Matiere> getMatieresByClasse(int idClasse);
+
+    List<Classe> getClassesByMatiere(int idMatiere);
+
+    boolean matiereExisteDansClasse(int idClasse, int idMatiere);
+
     List<Classe> getClassesByEnseignant(int idEnseignant);
 
     List<Enseignant> getAllEnseignants();
@@ -42,4 +52,10 @@ public interface IReferentielService {
     List<Etudiant> getAllEtudiants();
 
     List<Etudiant> getEtudiantsByClasse(int idClasse);
+
+    void ajouterEtudiant(Etudiant etudiant);
+
+    void modifierEtudiant(Etudiant etudiant);
+
+    void supprimerEtudiant(int idEtudiant);
 }

@@ -3,7 +3,7 @@ package com.gradebook.model;
 import java.time.LocalDate;
 
 public class DonneesPresence {
-    private String matriculeEtudiant;
+    private String cneEtudiant;
     private LocalDate dateAbsence;
     private String statut;
     private String matiere;
@@ -12,20 +12,20 @@ public class DonneesPresence {
     public DonneesPresence() {
     }
 
-    public DonneesPresence(String matriculeEtudiant, LocalDate dateAbsence, String statut, String matiere, String sourceImport) {
-        this.matriculeEtudiant = matriculeEtudiant;
+    public DonneesPresence(String cneEtudiant, LocalDate dateAbsence, String statut, String matiere, String sourceImport) {
+        this.cneEtudiant = cneEtudiant;
         this.dateAbsence = dateAbsence;
         this.statut = statut;
         this.matiere = matiere;
         this.sourceImport = sourceImport;
     }
 
-    public String getMatriculeEtudiant() {
-        return matriculeEtudiant;
+    public String getCneEtudiant() {
+        return cneEtudiant;
     }
 
-    public void setMatriculeEtudiant(String matriculeEtudiant) {
-        this.matriculeEtudiant = matriculeEtudiant;
+    public void setCneEtudiant(String cneEtudiant) {
+        this.cneEtudiant = cneEtudiant;
     }
 
     public LocalDate getDateAbsence() {
@@ -63,7 +63,7 @@ public class DonneesPresence {
     @Override
     public String toString() {
         return "DonneesPresence{" +
-                "matriculeEtudiant='" + matriculeEtudiant + '\'' +
+            "cneEtudiant='" + cneEtudiant + '\'' +
                 ", dateAbsence=" + dateAbsence +
                 ", statut='" + statut + '\'' +
                 ", matiere='" + matiere + '\'' +

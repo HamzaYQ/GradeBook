@@ -20,7 +20,7 @@ import java.util.Optional;
 
 public class NoteDaoImpl implements INoteDao {
     private static final String SELECT_WITH_JOINS =
-            "SELECT n.*, et.nom as etudiant_nom, et.prenom as etudiant_prenom, et.matricule, " +
+            "SELECT n.*, et.nom as etudiant_nom, et.prenom as etudiant_prenom, et.cne, " +
             "ev.libelle as eval_libelle, ev.type, ev.session, ev.coefficient as eval_coef, " +
             "ens.nom as ens_nom, ens.prenom as ens_prenom " +
             "FROM note n " +
@@ -168,7 +168,7 @@ public class NoteDaoImpl implements INoteDao {
         etudiant.setId(rs.getInt("id_etudiant"));
         etudiant.setNom(rs.getString("etudiant_nom"));
         etudiant.setPrenom(rs.getString("etudiant_prenom"));
-        etudiant.setMatricule(rs.getString("matricule"));
+        etudiant.setCne(rs.getString("cne"));
 
         Evaluation evaluation = new Evaluation();
         evaluation.setId(rs.getInt("id_evaluation"));

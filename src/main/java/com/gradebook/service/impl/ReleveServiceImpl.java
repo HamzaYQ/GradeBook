@@ -131,11 +131,11 @@ public class ReleveServiceImpl implements IReleveService {
         }
 
         Etudiant etudiant = releve.getEtudiant();
-        String matricule = etudiant != null ? etudiant.getMatricule() : "inconnu";
+        String cne = etudiant != null ? etudiant.getCne() : "inconnu";
         String periode = releve.getPeriode() != null ? releve.getPeriode().name() : "NA";
         String annee = releve.getAnneeAcademique() != null ? releve.getAnneeAcademique() : "NA";
 
-        String fileName = FILE_PREFIX + matricule + "_" + periode + "_" + annee + FILE_EXTENSION;
+        String fileName = FILE_PREFIX + cne + "_" + periode + "_" + annee + FILE_EXTENSION;
         File file = new File(exportDir, fileName);
 
         Document document = new Document();
@@ -158,7 +158,7 @@ public class ReleveServiceImpl implements IReleveService {
 
             Paragraph infos = new Paragraph(
                     "Nom complet : " + nomComplet + "\n" +
-                    "Matricule : " + matricule + "\n" +
+                    "CNE : " + cne + "\n" +
                     "Classe : " + classeNom + "\n" +
                     "Année académique : " + annee + "\n" +
                     "Période : " + periode,

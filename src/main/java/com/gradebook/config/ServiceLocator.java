@@ -2,6 +2,7 @@ package com.gradebook.config;
 
 import com.gradebook.dao.IAdministrationDao;
 import com.gradebook.dao.IClasseDao;
+import com.gradebook.dao.IClasseMatiereDao;
 import com.gradebook.dao.ICoursDao;
 import com.gradebook.dao.IEnseignantDao;
 import com.gradebook.dao.IEtudiantDao;
@@ -12,6 +13,7 @@ import com.gradebook.dao.IPresenceDao;
 import com.gradebook.dao.IReleveDeNotesDao;
 import com.gradebook.dao.impl.AdministrationDaoImpl;
 import com.gradebook.dao.impl.ClasseDaoImpl;
+import com.gradebook.dao.impl.ClasseMatiereDaoImpl;
 import com.gradebook.dao.impl.CoursDaoImpl;
 import com.gradebook.dao.impl.EnseignantDaoImpl;
 import com.gradebook.dao.impl.EtudiantDaoImpl;
@@ -35,6 +37,7 @@ import com.gradebook.service.impl.ReleveServiceImpl;
 
 public final class ServiceLocator {
     private static IClasseDao classeDao;
+    private static IClasseMatiereDao classeMatiereDao;
     private static IMatiereDao matiereDao;
     private static IEtudiantDao etudiantDao;
     private static IEnseignantDao enseignantDao;
@@ -60,6 +63,7 @@ public final class ServiceLocator {
             return;
         }
         classeDao = new ClasseDaoImpl();
+        classeMatiereDao = new ClasseMatiereDaoImpl();
         matiereDao = new MatiereDaoImpl();
         etudiantDao = new EtudiantDaoImpl();
         enseignantDao = new EnseignantDaoImpl();
@@ -79,7 +83,14 @@ public final class ServiceLocator {
         authService = new AuthServiceImpl(etudiantDao, enseignantDao, administrationDao);
         noteService = new NoteServiceImpl(noteDao, evaluationDao, coursDao);
         calculService = new CalculServiceImpl(noteDao, evaluationDao, matiereDao);
-        referentielService = new ReferentielServiceImpl(classeDao, matiereDao, enseignantDao, etudiantDao, coursDao);
+        referentielService = new ReferentielServiceImpl(
+            classeDao,
+            matiereDao,
+            enseignantDao,
+            etudiantDao,
+            coursDao,
+            classeMatiereDao
+        );
         presenceService = new PresenceServiceImpl(presenceDao, etudiantDao, matiereDao);
         releveService = new ReleveServiceImpl(releveDao, calculService, matiereDao, etudiantDao, administrationDao);
     }
@@ -137,5 +148,10 @@ public final class ServiceLocator {
     public static IClasseDao getClasseDao() {
         initDaos();
         return classeDao;
+    }
+
+    public static IClasseMatiereDao getClasseMatiereDao() {
+        initDaos();
+        return classeMatiereDao;
     }
 }

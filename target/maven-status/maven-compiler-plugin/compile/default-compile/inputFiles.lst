@@ -41,12 +41,14 @@ C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\model\LigneReleve.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\service\impl\ReferentielServiceImpl.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\dao\impl\EvaluationDaoImpl.java
+C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\dao\IClasseMatiereDao.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\dao\IAdministrationDao.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\service\impl\CalculServiceImpl.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\model\Administration.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\dao\impl\EtudiantDaoImpl.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\model\Matiere.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\model\Evaluation.java
+C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\dao\impl\ClasseMatiereDaoImpl.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\dao\IClasseDao.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\dao\IDao.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\model\TypeEvaluation.java

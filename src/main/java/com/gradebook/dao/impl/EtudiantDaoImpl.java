@@ -20,7 +20,7 @@ public class EtudiantDaoImpl implements IEtudiantDao {
 
     @Override
     public void create(Etudiant etudiant) {
-        String sql = "INSERT INTO etudiant (nom, prenom, email, mot_de_passe, matricule, id_classe) " +
+        String sql = "INSERT INTO etudiant (nom, prenom, email, mot_de_passe, cne, id_classe) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
         Connection conn = DatabaseConnection.getInstance().getConnection();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -28,7 +28,7 @@ public class EtudiantDaoImpl implements IEtudiantDao {
             stmt.setString(2, etudiant.getPrenom());
             stmt.setString(3, etudiant.getEmail());
             stmt.setString(4, etudiant.getMotDePasse());
-            stmt.setString(5, etudiant.getMatricule());
+            stmt.setString(5, etudiant.getCne());
             stmt.setInt(6, etudiant.getClasse().getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -72,14 +72,14 @@ public class EtudiantDaoImpl implements IEtudiantDao {
     @Override
     public void update(Etudiant etudiant) {
         String sql = "UPDATE etudiant SET nom = ?, prenom = ?, email = ?, mot_de_passe = ?, " +
-                "matricule = ?, id_classe = ? WHERE id_etudiant = ?";
+                "cne = ?, id_classe = ? WHERE id_etudiant = ?";
         Connection conn = DatabaseConnection.getInstance().getConnection();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, etudiant.getNom());
             stmt.setString(2, etudiant.getPrenom());
             stmt.setString(3, etudiant.getEmail());
             stmt.setString(4, etudiant.getMotDePasse());
-            stmt.setString(5, etudiant.getMatricule());
+            stmt.setString(5, etudiant.getCne());
             stmt.setInt(6, etudiant.getClasse().getId());
             stmt.setInt(7, etudiant.getId());
             stmt.executeUpdate();
@@ -101,11 +101,11 @@ public class EtudiantDaoImpl implements IEtudiantDao {
     }
 
     @Override
-    public Optional<Etudiant> findByMatricule(String matricule) {
-        String sql = SELECT_WITH_CLASSE + "WHERE e.matricule = ?";
+    public Optional<Etudiant> findByCne(String cne) {
+        String sql = SELECT_WITH_CLASSE + "WHERE e.cne = ?";
         Connection conn = DatabaseConnection.getInstance().getConnection();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, matricule);
+            stmt.setString(1, cne);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapResultSet(rs));
@@ -165,7 +165,7 @@ public class EtudiantDaoImpl implements IEtudiantDao {
         etudiant.setPrenom(rs.getString("prenom"));
         etudiant.setEmail(rs.getString("email"));
         etudiant.setMotDePasse(rs.getString("mot_de_passe"));
-        etudiant.setMatricule(rs.getString("matricule"));
+        etudiant.setCne(rs.getString("cne"));
         etudiant.setClasse(classe);
         return etudiant;
     }

@@ -1,24 +1,24 @@
 package com.gradebook.model;
 
 public class Etudiant extends Utilisateur {
-    private String matricule;
+    private String cne;
     private Classe classe;
 
     public Etudiant() {
     }
 
-    public Etudiant(int id, String nom, String prenom, String email, String motDePasse, String matricule, Classe classe) {
+    public Etudiant(int id, String nom, String prenom, String email, String motDePasse, String cne, Classe classe) {
         super(id, nom, prenom, email, motDePasse);
-        this.matricule = matricule;
+        this.cne = cne;
         this.classe = classe;
     }
 
-    public String getMatricule() {
-        return matricule;
+    public String getCne() {
+        return cne;
     }
 
-    public void setMatricule(String matricule) {
-        this.matricule = matricule;
+    public void setCne(String cne) {
+        this.cne = cne;
     }
 
     public Classe getClasse() {
@@ -38,7 +38,7 @@ public class Etudiant extends Utilisateur {
                 ", nom='" + nom + '\'' +
                 ", prenom='" + prenom + '\'' +
                 ", email='" + email + '\'' +
-                ", matricule='" + matricule + '\'' +
+            ", cne='" + cne + '\'' +
                 ", classeId=" + classeId +
                 ", classeNom='" + classeNom + '\'' +
                 '}';

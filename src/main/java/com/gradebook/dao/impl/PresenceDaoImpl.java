@@ -14,7 +14,7 @@ import java.util.List;
 
 public class PresenceDaoImpl implements IPresenceDao {
     private static final String SELECT_WITH_JOINS =
-            "SELECT p.*, e.matricule, m.intitule as matiere_intitule " +
+            "SELECT p.*, e.cne, m.intitule as matiere_intitule " +
             "FROM presence p " +
             "JOIN etudiant e ON p.id_etudiant = e.id_etudiant " +
             "JOIN matiere m ON p.id_matiere = m.id_matiere ";
@@ -22,12 +22,12 @@ public class PresenceDaoImpl implements IPresenceDao {
     @Override
     public void save(DonneesPresence presence) {
         String sql = "INSERT INTO presence (id_etudiant, id_matiere, date_absence, statut, source_import) " +
-                "VALUES ((SELECT id_etudiant FROM etudiant WHERE matricule = ?), " +
+            "VALUES ((SELECT id_etudiant FROM etudiant WHERE cne = ?), " +
                 "(SELECT id_matiere FROM matiere WHERE intitule = ?), ?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE statut = VALUES(statut)";
         Connection conn = DatabaseConnection.getInstance().getConnection();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, presence.getMatriculeEtudiant());
+            stmt.setString(1, presence.getCneEtudiant());
             stmt.setString(2, presence.getMatiere());
             if (presence.getDateAbsence() != null) {
                 stmt.setDate(3, Date.valueOf(presence.getDateAbsence()));
@@ -166,7 +166,7 @@ public class PresenceDaoImpl implements IPresenceDao {
 
     private DonneesPresence mapResultSet(ResultSet rs) throws SQLException {
         DonneesPresence presence = new DonneesPresence();
-        presence.setMatriculeEtudiant(rs.getString("matricule"));
+        presence.setCneEtudiant(rs.getString("cne"));
 
         Date dateAbsence = rs.getDate("date_absence");
         if (dateAbsence != null) {

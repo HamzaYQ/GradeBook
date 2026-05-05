@@ -1,7 +1,8 @@
 package com.gradebook.service.impl;
 
-import com.gradebook.dao.ICoursDao;
 import com.gradebook.dao.IClasseDao;
+import com.gradebook.dao.IClasseMatiereDao;
+import com.gradebook.dao.ICoursDao;
 import com.gradebook.dao.IEnseignantDao;
 import com.gradebook.dao.IEtudiantDao;
 import com.gradebook.dao.IMatiereDao;
@@ -20,20 +21,31 @@ public class ReferentielServiceImpl implements IReferentielService {
     private static final String ERR_INTITULE_MATIERE = "L'intitule est obligatoire";
     private static final String ERR_COEFFICIENT_MATIERE = "Le coefficient doit être supérieur à 0";
     private static final String ERR_AFFECTATION_EXISTE = "Cette affectation existe déjà";
+    private static final String ERR_CLASSE_INTROUVABLE = "Classe introuvable";
+    private static final String ERR_MATIERE_INTROUVABLE = "Matière introuvable";
+    private static final String ERR_CLASSE_MATIERE_EXISTE = "Cette matière est déjà associée à cette classe";
+    private static final String ERR_CLASSE_MATIERE_RETIRE =
+            "Impossible de retirer : un enseignant est affecté à cette matière pour cette classe";
+        private static final String ERR_MATIERE_RATTACHEE =
+            "Impossible de supprimer : cette matière est rattachée à une classe";
+        private static final String ERR_CNE_EXISTE = "Ce CNE existe déjà";
+    private static final String ERR_EMAIL_EXISTE = "Cet email existe déjà";
 
     private final IClasseDao classeDao;
     private final IMatiereDao matiereDao;
     private final IEnseignantDao enseignantDao;
     private final IEtudiantDao etudiantDao;
     private final ICoursDao coursDao;
+    private final IClasseMatiereDao classeMatiereDao;
 
     public ReferentielServiceImpl(IClasseDao classeDao, IMatiereDao matiereDao, IEnseignantDao enseignantDao,
-                                  IEtudiantDao etudiantDao, ICoursDao coursDao) {
+                                  IEtudiantDao etudiantDao, ICoursDao coursDao, IClasseMatiereDao classeMatiereDao) {
         this.classeDao = classeDao;
         this.matiereDao = matiereDao;
         this.enseignantDao = enseignantDao;
         this.etudiantDao = etudiantDao;
         this.coursDao = coursDao;
+        this.classeMatiereDao = classeMatiereDao;
     }
 
     @Override
@@ -98,6 +110,9 @@ public class ReferentielServiceImpl implements IReferentielService {
 
     @Override
     public void supprimerMatiere(int idMatiere) {
+        if (!classeMatiereDao.findClassesByMatiere(idMatiere).isEmpty()) {
+            throw new IllegalStateException(ERR_MATIERE_RATTACHEE);
+        }
         matiereDao.delete(idMatiere);
     }
 
@@ -130,6 +145,43 @@ public class ReferentielServiceImpl implements IReferentielService {
     }
 
     @Override
+    public void ajouterMatiereAClasse(int idClasse, int idMatiere) {
+        if (classeDao.findById(idClasse).isEmpty()) {
+            throw new IllegalStateException(ERR_CLASSE_INTROUVABLE);
+        }
+        if (matiereDao.findById(idMatiere).isEmpty()) {
+            throw new IllegalStateException(ERR_MATIERE_INTROUVABLE);
+        }
+        if (classeMatiereDao.existsClasseMatiere(idClasse, idMatiere)) {
+            throw new IllegalStateException(ERR_CLASSE_MATIERE_EXISTE);
+        }
+        classeMatiereDao.addMatiere(idClasse, idMatiere);
+    }
+
+    @Override
+    public void retirerMatiereDeClasse(int idClasse, int idMatiere) {
+        if (!coursDao.findEnseignantsByClasseAndMatiere(idClasse, idMatiere).isEmpty()) {
+            throw new IllegalStateException(ERR_CLASSE_MATIERE_RETIRE);
+        }
+        classeMatiereDao.removeMatiere(idClasse, idMatiere);
+    }
+
+    @Override
+    public List<Matiere> getMatieresByClasse(int idClasse) {
+        return classeMatiereDao.findMatieresByClasse(idClasse);
+    }
+
+    @Override
+    public List<Classe> getClassesByMatiere(int idMatiere) {
+        return classeMatiereDao.findClassesByMatiere(idMatiere);
+    }
+
+    @Override
+    public boolean matiereExisteDansClasse(int idClasse, int idMatiere) {
+        return classeMatiereDao.existsClasseMatiere(idClasse, idMatiere);
+    }
+
+    @Override
     public List<Classe> getClassesByEnseignant(int idEnseignant) {
         return coursDao.findClassesByEnseignant(idEnseignant);
     }
@@ -147,5 +199,26 @@ public class ReferentielServiceImpl implements IReferentielService {
     @Override
     public List<Etudiant> getEtudiantsByClasse(int idClasse) {
         return etudiantDao.findByClasse(idClasse);
+    }
+
+    @Override
+    public void ajouterEtudiant(Etudiant etudiant) {
+        if (etudiantDao.findByCne(etudiant.getCne()).isPresent()) {
+            throw new IllegalStateException(ERR_CNE_EXISTE);
+        }
+        if (etudiantDao.findByEmail(etudiant.getEmail()).isPresent()) {
+            throw new IllegalStateException(ERR_EMAIL_EXISTE);
+        }
+        etudiantDao.create(etudiant);
+    }
+
+    @Override
+    public void modifierEtudiant(Etudiant etudiant) {
+        etudiantDao.update(etudiant);
+    }
+
+    @Override
+    public void supprimerEtudiant(int idEtudiant) {
+        etudiantDao.delete(idEtudiant);
     }
 }

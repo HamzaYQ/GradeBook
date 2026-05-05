@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class PresenceServiceImpl implements IPresenceService {
-    private static final String HEADER_MATRICULE = "matricule";
+    private static final String HEADER_CNE = "cne";
     private static final String HEADER_DATE = "date";
     private static final String HEADER_STATUT = "statut";
     private static final String HEADER_MATIERE = "matiere";
@@ -78,7 +78,7 @@ public class PresenceServiceImpl implements IPresenceService {
         int count = 0;
 
         for (DonneesPresence presence : presences) {
-            Optional<Etudiant> etudiant = etudiantDao.findByMatricule(presence.getMatriculeEtudiant());
+            Optional<Etudiant> etudiant = etudiantDao.findByCne(presence.getCneEtudiant());
             if (etudiant.isEmpty()) {
                 continue;
             }
@@ -119,12 +119,12 @@ public class PresenceServiceImpl implements IPresenceService {
     }
 
     private DonneesPresence parseRow(Map<String, String> row, File fichier) {
-        String matricule = normalize(row.get(HEADER_MATRICULE));
+        String cne = normalize(row.get(HEADER_CNE));
         String dateValue = normalize(row.get(HEADER_DATE));
         String statutValue = normalize(row.get(HEADER_STATUT));
         String matiere = normalize(row.get(HEADER_MATIERE));
 
-        if (matricule == null || dateValue == null || statutValue == null || matiere == null) {
+        if (cne == null || dateValue == null || statutValue == null || matiere == null) {
             return null;
         }
 
@@ -141,7 +141,7 @@ public class PresenceServiceImpl implements IPresenceService {
         }
 
         DonneesPresence presence = new DonneesPresence();
-        presence.setMatriculeEtudiant(matricule);
+        presence.setCneEtudiant(cne);
         presence.setDateAbsence(date);
         presence.setStatut(statut);
         presence.setMatiere(matiere);

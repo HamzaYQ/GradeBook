@@ -505,10 +505,10 @@ public class EtudiantMainFrame extends Application {
     }
 
     private String buildReleveFileName(ReleveDeNotes releve) {
-        String matricule = releve.getEtudiant() != null ? releve.getEtudiant().getMatricule() : "etudiant";
+        String cne = releve.getEtudiant() != null ? releve.getEtudiant().getCne() : "etudiant";
         String periode = releve.getPeriode() != null ? releve.getPeriode().name() : "NA";
         String annee = releve.getAnneeAcademique() != null ? releve.getAnneeAcademique() : "NA";
-        return "releve_" + matricule + "_" + periode + "_" + annee + ".pdf";
+        return "releve_" + cne + "_" + periode + "_" + annee + ".pdf";
     }
 
     private String getMoyenneColor(double moyenne) {

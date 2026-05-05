@@ -18,7 +18,7 @@ CREATE TABLE etudiant (
   prenom VARCHAR(50) NOT NULL,
   email VARCHAR(100) UNIQUE NOT NULL,
   mot_de_passe VARCHAR(255) NOT NULL,
-  matricule VARCHAR(20) UNIQUE NOT NULL,
+  cne VARCHAR(20) UNIQUE NOT NULL,
   id_classe INT NOT NULL,
   FOREIGN KEY (id_classe) REFERENCES classe(id_classe)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -47,6 +47,19 @@ CREATE TABLE matiere (
   intitule VARCHAR(100) NOT NULL,
   coefficient FLOAT NOT NULL,
   CONSTRAINT chk_coefficient CHECK (coefficient > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table: classe_matiere
+CREATE TABLE classe_matiere (
+  id_classe INT NOT NULL,
+  id_matiere INT NOT NULL,
+  PRIMARY KEY (id_classe, id_matiere),
+  FOREIGN KEY (id_classe)
+    REFERENCES classe(id_classe)
+    ON DELETE CASCADE,
+  FOREIGN KEY (id_matiere)
+    REFERENCES matiere(id_matiere)
+    ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table: evaluation
@@ -129,6 +142,12 @@ INSERT INTO matiere (intitule, coefficient) VALUES
   ('Bases de Données', 3),
   ('Algorithmique Avancée', 2);
 
+-- Donnees de test: classe_matiere
+INSERT INTO classe_matiere (id_classe, id_matiere) VALUES
+  (1, 1),
+  (1, 2),
+  (1, 3);
+
 -- Donnees de test: enseignants (mot_de_passe en SHA-256)
 INSERT INTO enseignant (nom, prenom, email, mot_de_passe) VALUES
   ('BENSAG', 'Hassna', 'bensag@enset.ma', '475ba33c72a6f1dd3495197a80d6d748849069e6f87e90f41f6d661c65e885ad'),
@@ -139,7 +158,7 @@ INSERT INTO administration (nom, prenom, email, mot_de_passe) VALUES
   ('ENSET', 'Scolarite', 'scolarite@enset.ma', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9');
 
 -- Donnees de test: etudiants (mot_de_passe en SHA-256, id_classe = 1)
-INSERT INTO etudiant (nom, prenom, email, mot_de_passe, matricule, id_classe) VALUES
+INSERT INTO etudiant (nom, prenom, email, mot_de_passe, cne, id_classe) VALUES
   ('YAQUINE', 'Hamza', 'yaquine@enset.ma', '36432aa0a54a06c13ca2ff16cef78ca66e1cd5fa869f36791a79bc4f4c5d8120', 'EE001', 1),
   ('BOUHLAOUI', 'Aymane', 'bouhlaoui@enset.ma', '36432aa0a54a06c13ca2ff16cef78ca66e1cd5fa869f36791a79bc4f4c5d8120', 'EE002', 1),
   ('EL HAMIDI', 'Khalid', 'elhamidi@enset.ma', '36432aa0a54a06c13ca2ff16cef78ca66e1cd5fa869f36791a79bc4f4c5d8120', 'EE003', 1),

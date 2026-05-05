@@ -19,7 +19,7 @@ import java.util.Optional;
 
 public class ReleveDeNotesDaoImpl implements IReleveDeNotesDao {
     private static final String SELECT_WITH_JOINS =
-            "SELECT r.*, e.nom as etudiant_nom, e.prenom as etudiant_prenom, e.matricule, " +
+            "SELECT r.*, e.nom as etudiant_nom, e.prenom as etudiant_prenom, e.cne, " +
             "a.nom as admin_nom " +
             "FROM releve_de_notes r " +
             "JOIN etudiant e ON r.id_etudiant = e.id_etudiant " +
@@ -186,7 +186,7 @@ public class ReleveDeNotesDaoImpl implements IReleveDeNotesDao {
         etudiant.setId(rs.getInt("id_etudiant"));
         etudiant.setNom(rs.getString("etudiant_nom"));
         etudiant.setPrenom(rs.getString("etudiant_prenom"));
-        etudiant.setMatricule(rs.getString("matricule"));
+        etudiant.setCne(rs.getString("cne"));
         releve.setEtudiant(etudiant);
 
         Administration admin = new Administration();
