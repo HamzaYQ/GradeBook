@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.gradebook.ui.LoginController"
+      prefWidth="450" prefHeight="550"
+      spacing="12" alignment="TOP_LEFT"
+      style="-fx-background-color: white;">
+    <padding>
+        <Insets top="30" right="30" bottom="30" left="30" />
+    </padding>
+
+    <Label text="GradeBook" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2E4057;" />
+    <Label text="Gestion des évaluations" style="-fx-font-size: 14px; -fx-text-fill: #666666;" />
+    <Separator />
+
+    <Label text="Email" />
+    <TextField fx:id="emailField" promptText="votre@email.ma" prefWidth="390" />
+
+    <Label text="Mot de passe" />
+    <PasswordField fx:id="passwordField" prefWidth="390" />
+
+    <Button fx:id="loginButton" text="Se connecter" onAction="#handleLogin"
+            maxWidth="1.7976931348623157E308" />
+
+    <Label fx:id="labelErreur" text="" visible="false" managed="false"
+           maxWidth="1.7976931348623157E308" alignment="CENTER"
+           style="-fx-text-fill: #E74C3C;" wrapText="true" />
+
+    <Region VBox.vgrow="ALWAYS" />
+
+    <Label text="GradeBook © 2025-2026 ENSET Mohammedia"
+           maxWidth="1.7976931348623157E308" alignment="CENTER"
+           style="-fx-font-size: 11px; -fx-text-fill: #888888;" />
+</VBox>
