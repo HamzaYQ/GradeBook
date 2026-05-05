@@ -49,6 +49,14 @@ public interface IReferentielService {
 
     List<Enseignant> getAllEnseignants();
 
+    void ajouterEnseignant(Enseignant enseignant);
+
+    void modifierEnseignant(Enseignant enseignant);
+
+    void supprimerEnseignant(int idEnseignant);
+
+    List<Enseignant> getEnseignantsByClasse(int idClasse);
+
     List<Etudiant> getAllEtudiants();
 
     List<Etudiant> getEtudiantsByClasse(int idClasse);

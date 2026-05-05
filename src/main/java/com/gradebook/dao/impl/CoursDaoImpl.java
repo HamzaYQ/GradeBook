@@ -105,6 +105,26 @@ public class CoursDaoImpl implements ICoursDao {
     }
 
     @Override
+    public List<Enseignant> findEnseignantsByClasse(int idClasse) {
+        String sql = "SELECT DISTINCT e.* FROM enseignant e " +
+                "JOIN cours c ON e.id_enseignant = c.id_enseignant " +
+                "WHERE c.id_classe = ?";
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        List<Enseignant> result = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idClasse);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapEnseignant(rs));
+                }
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
     public boolean existsCours(int idEnseignant, int idClasse, int idMatiere) {
         String sql = "SELECT COUNT(*) FROM cours WHERE id_enseignant = ? AND id_classe = ? AND id_matiere = ?";
         Connection conn = DatabaseConnection.getInstance().getConnection();

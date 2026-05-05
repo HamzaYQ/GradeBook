@@ -2,6 +2,7 @@ package com.gradebook.ui.administration;
 
 import com.gradebook.config.ServiceLocator;
 import com.gradebook.model.Classe;
+import com.gradebook.model.Enseignant;
 import com.gradebook.model.Etudiant;
 import com.gradebook.model.Matiere;
 import javafx.beans.property.SimpleStringProperty;
@@ -55,6 +56,8 @@ public class ReferentielPanel extends VBox {
     private static final String ERR_CLASSE = "Veuillez sélectionner une classe";
     private static final String ERR_DELETE_ETUDIANT =
             "Impossible de supprimer : des notes sont rattachées à cet étudiant";
+        private static final String ERR_DELETE_ENSEIGNANT =
+            "Impossible de supprimer : cet enseignant possède des affectations ou des notes saisies";
 
     private static final String ALL_CLASSES_LABEL = "Toutes les classes";
     private static final String MASK_PASSWORD = "********";
@@ -62,12 +65,14 @@ public class ReferentielPanel extends VBox {
     private final TableView<Classe> classesTable = new TableView<>();
     private final TableView<Matiere> matieresTable = new TableView<>();
     private final TableView<Etudiant> etudiantsTable = new TableView<>();
+    private final TableView<Enseignant> enseignantsTable = new TableView<>();
 
     private final ComboBox<Classe> etudiantsFilter = new ComboBox<>();
 
     private final Map<Integer, Integer> classeMatiereCounts = new HashMap<>();
     private final Map<Integer, Integer> classeEtudiantCounts = new HashMap<>();
     private final Map<Integer, Integer> matiereClasseCounts = new HashMap<>();
+    private final Map<Integer, String> enseignantClassesLabels = new HashMap<>();
 
     public ReferentielPanel() {
         setPadding(new Insets(25));
@@ -83,6 +88,7 @@ public class ReferentielPanel extends VBox {
         tabPane.getTabs().add(buildClassesTab());
         tabPane.getTabs().add(buildMatieresTab());
         tabPane.getTabs().add(buildEtudiantsTab());
+        tabPane.getTabs().add(buildEnseignantsTab());
 
         VBox.setVgrow(tabPane, Priority.ALWAYS);
         getChildren().addAll(title, tabPane);
@@ -90,6 +96,7 @@ public class ReferentielPanel extends VBox {
         loadClasses();
         loadMatieres();
         loadEtudiants();
+        loadEnseignants();
     }
 
     private Tab buildClassesTab() {
@@ -128,7 +135,13 @@ public class ReferentielPanel extends VBox {
         viewStudentsButton.disableProperty().bind(classesTable.getSelectionModel().selectedItemProperty().isNull());
         viewStudentsButton.setOnAction(event -> handleViewEtudiants());
 
-        HBox actions = new HBox(10, addButton, editButton, manageButton, viewStudentsButton, deleteButton);
+        Button viewTeachersButton = new Button("👨‍🏫 Voir les enseignants");
+        viewTeachersButton.setStyle(BTN_EDIT_STYLE);
+        viewTeachersButton.disableProperty().bind(classesTable.getSelectionModel().selectedItemProperty().isNull());
+        viewTeachersButton.setOnAction(event -> handleViewEnseignants());
+
+        HBox actions = new HBox(10, addButton, editButton, manageButton, viewStudentsButton,
+            viewTeachersButton, deleteButton);
         actions.setAlignment(Pos.CENTER_LEFT);
 
         VBox content = new VBox(10, classesTable, actions);
@@ -221,6 +234,42 @@ public class ReferentielPanel extends VBox {
         return tab;
     }
 
+    private Tab buildEnseignantsTab() {
+        Tab tab = new Tab("Enseignants");
+
+        enseignantsTable.getColumns().setAll(
+                createColumn("Nom", 130, Enseignant::getNom),
+                createColumn("Prénom", 130, Enseignant::getPrenom),
+                createColumn("Email", 200, Enseignant::getEmail),
+                createColumn("Classes affectées", 200, enseignant ->
+                        enseignantClassesLabels.getOrDefault(enseignant.getId(), ""))
+        );
+
+        Button addButton = new Button("➕ Ajouter enseignant");
+        addButton.setStyle(BTN_ADD_STYLE);
+        addButton.setOnAction(event -> handleAddEnseignant());
+
+        Button editButton = new Button("✏️ Modifier");
+        editButton.setStyle(BTN_EDIT_STYLE);
+        editButton.disableProperty().bind(enseignantsTable.getSelectionModel().selectedItemProperty().isNull());
+        editButton.setOnAction(event -> handleEditEnseignant());
+
+        Button deleteButton = new Button("🗑️ Supprimer");
+        deleteButton.setStyle(BTN_DELETE_STYLE);
+        deleteButton.disableProperty().bind(enseignantsTable.getSelectionModel().selectedItemProperty().isNull());
+        deleteButton.setOnAction(event -> handleDeleteEnseignant());
+
+        HBox actions = new HBox(10, addButton, editButton, deleteButton);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox content = new VBox(10, enseignantsTable, actions);
+        VBox.setVgrow(enseignantsTable, Priority.ALWAYS);
+        content.setPadding(new Insets(10));
+
+        tab.setContent(content);
+        return tab;
+    }
+
     private <T> TableColumn<T, String> createColumn(String title, double width, Function<T, String> mapper) {
         TableColumn<T, String> column = new TableColumn<>(title);
         column.setPrefWidth(width);
@@ -301,6 +350,21 @@ public class ReferentielPanel extends VBox {
             }
 
             applyEtudiantsFilter(etudiantsFilter.getValue());
+        } catch (Exception e) {
+            showError(e);
+        }
+    }
+
+    private void loadEnseignants() {
+        try {
+            List<Enseignant> enseignants = ServiceLocator.getReferentielService().getAllEnseignants();
+            enseignantClassesLabels.clear();
+            for (Enseignant enseignant : enseignants) {
+                List<Classe> classes = ServiceLocator.getReferentielService()
+                        .getClassesByEnseignant(enseignant.getId());
+                enseignantClassesLabels.put(enseignant.getId(), joinClasseLabels(classes));
+            }
+            enseignantsTable.setItems(javafx.collections.FXCollections.observableArrayList(enseignants));
         } catch (Exception e) {
             showError(e);
         }
@@ -393,6 +457,14 @@ public class ReferentielPanel extends VBox {
             return;
         }
         showEtudiantsClasseDialog(selected);
+    }
+
+    private void handleViewEnseignants() {
+        Classe selected = classesTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+        showEnseignantsClasseDialog(selected);
     }
 
     private void handleAddMatiere() {
@@ -525,6 +597,81 @@ public class ReferentielPanel extends VBox {
             loadClasses();
         } catch (Exception e) {
             showErrorMessage(ERR_DELETE_ETUDIANT);
+        }
+    }
+
+    private void handleAddEnseignant() {
+        Optional<EnseignantFormResult> result = showEnseignantDialog(null);
+        if (result.isEmpty()) {
+            return;
+        }
+
+        EnseignantFormResult form = result.get();
+        Enseignant enseignant = form.getEnseignant();
+        String hashed = ServiceLocator.getAuthService().hasherMotDePasse(form.getMotDePasse());
+        enseignant.setMotDePasse(hashed);
+        try {
+            ServiceLocator.getReferentielService().ajouterEnseignant(enseignant);
+            showInfo("Enseignant " + enseignant.getNom() + " " + enseignant.getPrenom() +
+                    " ajouté avec succès");
+            loadEnseignants();
+        } catch (IllegalStateException e) {
+            showWarning(e.getMessage());
+        } catch (Exception e) {
+            showError(e);
+        }
+    }
+
+    private void handleEditEnseignant() {
+        Enseignant selected = enseignantsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+        Optional<EnseignantFormResult> result = showEnseignantDialog(selected);
+        if (result.isEmpty()) {
+            return;
+        }
+
+        EnseignantFormResult form = result.get();
+        Enseignant updated = form.getEnseignant();
+        updated.setId(selected.getId());
+
+        if (MASK_PASSWORD.equals(form.getMotDePasse())) {
+            updated.setMotDePasse(selected.getMotDePasse());
+        } else {
+            String hashed = ServiceLocator.getAuthService().hasherMotDePasse(form.getMotDePasse());
+            updated.setMotDePasse(hashed);
+        }
+
+        try {
+            ServiceLocator.getReferentielService().modifierEnseignant(updated);
+            loadEnseignants();
+        } catch (Exception e) {
+            showError(e);
+        }
+    }
+
+    private void handleDeleteEnseignant() {
+        Enseignant selected = enseignantsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                "Supprimer l'enseignant " + selected.getNom() + " " + selected.getPrenom() + " ?",
+                ButtonType.OK, ButtonType.CANCEL);
+        alert.setHeaderText(null);
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        try {
+            ServiceLocator.getReferentielService().supprimerEnseignant(selected.getId());
+            showInfo("Enseignant supprimé avec succès");
+            loadEnseignants();
+        } catch (Exception e) {
+            showErrorMessage(ERR_DELETE_ENSEIGNANT);
         }
     }
 
@@ -714,6 +861,62 @@ public class ReferentielPanel extends VBox {
         return dialog.showAndWait();
     }
 
+    private Optional<EnseignantFormResult> showEnseignantDialog(Enseignant existing) {
+        Dialog<EnseignantFormResult> dialog = new Dialog<>();
+        dialog.setTitle(existing == null ? "Nouvel enseignant" : "Modifier enseignant");
+
+        ButtonType saveType = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveType, ButtonType.CANCEL);
+
+        TextField nomField = new TextField(existing != null ? existing.getNom() : "");
+        TextField prenomField = new TextField(existing != null ? existing.getPrenom() : "");
+        TextField emailField = new TextField(existing != null ? existing.getEmail() : "");
+        PasswordField passwordField = new PasswordField();
+        passwordField.setText(existing != null ? MASK_PASSWORD : "");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+        grid.add(new Label("Nom :"), 0, 0);
+        grid.add(nomField, 1, 0);
+        grid.add(new Label("Prénom :"), 0, 1);
+        grid.add(prenomField, 1, 1);
+        grid.add(new Label("Email :"), 0, 2);
+        grid.add(emailField, 1, 2);
+        grid.add(new Label("Mot de passe :"), 0, 3);
+        grid.add(passwordField, 1, 3);
+
+        dialog.getDialogPane().setContent(grid);
+
+        Button saveButton = (Button) dialog.getDialogPane().lookupButton(saveType);
+        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
+            if (isBlank(nomField.getText()) || isBlank(prenomField.getText()) ||
+                    isBlank(emailField.getText()) || isBlank(passwordField.getText())) {
+                showWarning(ERR_CHAMPS);
+                event.consume();
+                return;
+            }
+            if (!emailField.getText().contains("@")) {
+                showWarning(ERR_EMAIL);
+                event.consume();
+            }
+        });
+
+        dialog.setResultConverter(button -> {
+            if (button == saveType) {
+                Enseignant enseignant = new Enseignant();
+                enseignant.setNom(nomField.getText().trim());
+                enseignant.setPrenom(prenomField.getText().trim());
+                enseignant.setEmail(emailField.getText().trim());
+                return new EnseignantFormResult(enseignant, passwordField.getText());
+            }
+            return null;
+        });
+
+        return dialog.showAndWait();
+    }
+
     private void showGestionMatieresDialog(Classe classe) {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Matières de " + classe.getNom());
@@ -830,6 +1033,52 @@ public class ReferentielPanel extends VBox {
         dialog.showAndWait();
     }
 
+    private void showEnseignantsClasseDialog(Classe classe) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Enseignants de la classe " + classe.getNom());
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setPrefSize(650, DIALOG_HEIGHT);
+
+        Label title = new Label("Enseignants de " + classe.getNom());
+        title.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        Label totalLabel = new Label("Total : 0 enseignant(s)");
+        totalLabel.setStyle("-fx-text-fill: #6C757D;");
+
+        TableView<Enseignant> table = new TableView<>();
+        Map<Integer, String> matieresLabels = new HashMap<>();
+
+        table.getColumns().setAll(
+                createColumn("Nom", 130, Enseignant::getNom),
+                createColumn("Prénom", 130, Enseignant::getPrenom),
+                createColumn("Email", 180, Enseignant::getEmail),
+                createColumn("Matière enseignée", 180, enseignant ->
+                        matieresLabels.getOrDefault(enseignant.getId(), ""))
+        );
+        Label emptyLabel = new Label("Aucun enseignant affecté à cette classe");
+        table.setPlaceholder(emptyLabel);
+
+        try {
+            List<Enseignant> enseignants = ServiceLocator.getReferentielService().getEnseignantsByClasse(classe.getId());
+            totalLabel.setText("Total : " + enseignants.size() + " enseignant(s)");
+            for (Enseignant enseignant : enseignants) {
+                List<Matiere> matieres = ServiceLocator.getReferentielService()
+                        .getMatieresByEnseignantAndClasse(enseignant.getId(), classe.getId());
+                matieresLabels.put(enseignant.getId(), joinMatiereLabels(matieres));
+            }
+            table.setItems(javafx.collections.FXCollections.observableArrayList(enseignants));
+        } catch (Exception e) {
+            showError(e);
+        }
+
+        VBox content = new VBox(10, title, totalLabel, table);
+        content.setPadding(new Insets(10));
+        VBox.setVgrow(table, Priority.ALWAYS);
+
+        dialog.getDialogPane().setContent(content);
+        dialog.showAndWait();
+    }
+
     private void refreshGestionTables(Classe classe, TableView<Matiere> associatedTable, TableView<Matiere> availableTable) {
         List<Matiere> associated = ServiceLocator.getReferentielService().getMatieresByClasse(classe.getId());
         List<Matiere> all = ServiceLocator.getReferentielService().getAllMatieres();
@@ -868,6 +1117,24 @@ public class ReferentielPanel extends VBox {
         }
     }
 
+    private static class EnseignantFormResult {
+        private final Enseignant enseignant;
+        private final String motDePasse;
+
+        private EnseignantFormResult(Enseignant enseignant, String motDePasse) {
+            this.enseignant = enseignant;
+            this.motDePasse = motDePasse;
+        }
+
+        private Enseignant getEnseignant() {
+            return enseignant;
+        }
+
+        private String getMotDePasse() {
+            return motDePasse;
+        }
+    }
+
     private String formatMatiereCount(Integer count) {
         int value = count != null ? count : 0;
         return value + " matières";
@@ -881,6 +1148,40 @@ public class ReferentielPanel extends VBox {
     private String formatEtudiantCount(Integer count) {
         int value = count != null ? count : 0;
         return value + " étudiants";
+    }
+
+    private String joinClasseLabels(List<Classe> classes) {
+        if (classes == null || classes.isEmpty()) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (Classe classe : classes) {
+            if (classe == null || classe.getNom() == null) {
+                continue;
+            }
+            if (builder.length() > 0) {
+                builder.append(", ");
+            }
+            builder.append(classe.getNom());
+        }
+        return builder.toString();
+    }
+
+    private String joinMatiereLabels(List<Matiere> matieres) {
+        if (matieres == null || matieres.isEmpty()) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (Matiere matiere : matieres) {
+            if (matiere == null || matiere.getIntitule() == null) {
+                continue;
+            }
+            if (builder.length() > 0) {
+                builder.append(", ");
+            }
+            builder.append(matiere.getIntitule());
+        }
+        return builder.toString();
     }
 
     private String formatTwo(double valeur) {

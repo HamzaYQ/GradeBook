@@ -17,5 +17,7 @@ public interface ICoursDao {
 
     List<Enseignant> findEnseignantsByClasseAndMatiere(int idClasse, int idMatiere);
 
+    List<Enseignant> findEnseignantsByClasse(int idClasse);
+
     boolean existsCours(int idEnseignant, int idClasse, int idMatiere);
 }

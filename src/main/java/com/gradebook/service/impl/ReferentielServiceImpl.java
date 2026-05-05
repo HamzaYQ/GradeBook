@@ -192,6 +192,29 @@ public class ReferentielServiceImpl implements IReferentielService {
     }
 
     @Override
+    public void ajouterEnseignant(Enseignant enseignant) {
+        if (enseignantDao.findByEmail(enseignant.getEmail()).isPresent()) {
+            throw new IllegalStateException(ERR_EMAIL_EXISTE);
+        }
+        enseignantDao.create(enseignant);
+    }
+
+    @Override
+    public void modifierEnseignant(Enseignant enseignant) {
+        enseignantDao.update(enseignant);
+    }
+
+    @Override
+    public void supprimerEnseignant(int idEnseignant) {
+        enseignantDao.delete(idEnseignant);
+    }
+
+    @Override
+    public List<Enseignant> getEnseignantsByClasse(int idClasse) {
+        return coursDao.findEnseignantsByClasse(idClasse);
+    }
+
+    @Override
     public List<Etudiant> getAllEtudiants() {
         return etudiantDao.findAll();
     }

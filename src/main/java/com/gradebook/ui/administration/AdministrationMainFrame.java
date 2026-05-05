@@ -140,6 +140,7 @@ public class AdministrationMainFrame extends javafx.application.Application {
         });
         affectationsButton.setOnAction(event -> {
             setActive(affectationsButton);
+            affectationsPanel.refreshData();
             showPanel(affectationsPanel);
         });
         relevesButton.setOnAction(event -> {

@@ -66,6 +66,10 @@ public class AffectationsPanel extends VBox {
         splitPane.getItems().addAll(left, right);
         getChildren().addAll(title, splitPane);
 
+        refreshData();
+    }
+
+    public void refreshData() {
         loadFormData();
         loadAffectations();
     }
