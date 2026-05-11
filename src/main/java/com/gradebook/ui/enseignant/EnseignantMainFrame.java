@@ -94,7 +94,7 @@ public class EnseignantMainFrame extends Application {
 
     private void initPanels() {
         saisieNotesPanel = new SaisieNotesPanel(enseignant);
-        statistiquesPanel = new StatistiquesPanel();
+        statistiquesPanel = new StatistiquesPanel(enseignant);
         presenceEnseignantPanel = new PresenceEnseignantPanel();
     }
 
