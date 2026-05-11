@@ -4,7 +4,6 @@ import com.gradebook.config.ServiceLocator;
 import com.gradebook.model.Classe;
 import com.gradebook.model.Enseignant;
 import com.gradebook.model.Matiere;
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,7 +15,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -38,6 +36,7 @@ public class AffectationsPanel extends VBox {
 
     private final ComboBox<Enseignant> cbEnseignant = new ComboBox<>();
     private final ComboBox<Classe> cbClasse = new ComboBox<>();
+    private final ComboBox<Integer> cbSemestre = new ComboBox<>();
     private final ComboBox<Matiere> cbMatiere = new ComboBox<>();
 
     private final ComboBox<Classe> cbFiltreClasse = new ComboBox<>();
@@ -87,6 +86,7 @@ public class AffectationsPanel extends VBox {
 
         cbEnseignant.setMaxWidth(Double.MAX_VALUE);
         cbClasse.setMaxWidth(Double.MAX_VALUE);
+        cbSemestre.setMaxWidth(Double.MAX_VALUE);
         cbMatiere.setMaxWidth(Double.MAX_VALUE);
 
         cbEnseignant.setCellFactory(list -> new javafx.scene.control.ListCell<>() {
@@ -115,6 +115,19 @@ public class AffectationsPanel extends VBox {
         });
         cbClasse.setButtonCell(cbClasse.getCellFactory().call(null));
 
+        cbSemestre.setCellFactory(list -> new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText("Semestre " + item);
+                }
+            }
+        });
+        cbSemestre.setButtonCell(cbSemestre.getCellFactory().call(null));
+
         cbMatiere.setCellFactory(list -> new javafx.scene.control.ListCell<>() {
             @Override
             protected void updateItem(Matiere item, boolean empty) {
@@ -128,17 +141,23 @@ public class AffectationsPanel extends VBox {
         });
         cbMatiere.setButtonCell(cbMatiere.getCellFactory().call(null));
 
-        cbClasse.valueProperty().addListener((obs, oldValue, newValue) -> loadMatieresForClasse(newValue));
+        cbClasse.valueProperty().addListener((obs, oldValue, newValue) ->
+            loadMatieresForClasseAndSemestre(newValue, cbSemestre.getValue()));
+        cbSemestre.valueProperty().addListener((obs, oldValue, newValue) ->
+            loadMatieresForClasseAndSemestre(cbClasse.getValue(), newValue));
 
         form.add(new Label("Enseignant :"), 0, 0);
         form.add(cbEnseignant, 1, 0);
         form.add(new Label("Classe :"), 0, 1);
         form.add(cbClasse, 1, 1);
-        form.add(new Label("Matière :"), 0, 2);
-        form.add(cbMatiere, 1, 2);
+        form.add(new Label("Semestre :"), 0, 2);
+        form.add(cbSemestre, 1, 2);
+        form.add(new Label("Matière :"), 0, 3);
+        form.add(cbMatiere, 1, 3);
 
         GridPane.setHgrow(cbEnseignant, Priority.ALWAYS);
         GridPane.setHgrow(cbClasse, Priority.ALWAYS);
+        GridPane.setHgrow(cbSemestre, Priority.ALWAYS);
         GridPane.setHgrow(cbMatiere, Priority.ALWAYS);
 
         Button btnAffecter = new Button("✅ Affecter");
@@ -146,6 +165,7 @@ public class AffectationsPanel extends VBox {
         btnAffecter.disableProperty().bind(
                 cbEnseignant.valueProperty().isNull()
                         .or(cbClasse.valueProperty().isNull())
+                .or(cbSemestre.valueProperty().isNull())
                         .or(cbMatiere.valueProperty().isNull())
         );
         btnAffecter.setOnAction(event -> handleAffecter());
@@ -201,13 +221,19 @@ public class AffectationsPanel extends VBox {
                 data.getValue().getClasse().getNom()
         ));
 
+        TableColumn<LigneAffectation, String> colSemestre = new TableColumn<>("Semestre");
+        colSemestre.setPrefWidth(80);
+        colSemestre.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(
+            "S" + data.getValue().getSemestre()
+        ));
+
         TableColumn<LigneAffectation, String> colMatiere = new TableColumn<>("Matière");
         colMatiere.setPrefWidth(180);
         colMatiere.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(
                 data.getValue().getMatiere().getIntitule()
         ));
 
-        table.getColumns().setAll(colEns, colClasse, colMatiere);
+        table.getColumns().setAll(colEns, colClasse, colSemestre, colMatiere);
         VBox.setVgrow(table, Priority.ALWAYS);
 
         box.getChildren().addAll(subtitle, filters, table);
@@ -221,6 +247,9 @@ public class AffectationsPanel extends VBox {
 
             List<Classe> classes = ServiceLocator.getReferentielService().getAllClasses();
             cbClasse.setItems(FXCollections.observableArrayList(classes));
+
+            cbSemestre.setItems(FXCollections.observableArrayList(1, 2));
+            cbSemestre.setValue(1);
 
             cbMatiere.setItems(FXCollections.observableArrayList());
 
@@ -237,14 +266,15 @@ public class AffectationsPanel extends VBox {
         }
     }
 
-    private void loadMatieresForClasse(Classe classe) {
-        if (classe == null) {
+    private void loadMatieresForClasseAndSemestre(Classe classe, Integer semestre) {
+        if (classe == null || semestre == null) {
             cbMatiere.getItems().clear();
             cbMatiere.setValue(null);
             return;
         }
         try {
-            List<Matiere> matieres = ServiceLocator.getReferentielService().getMatieresByClasse(classe.getId());
+            List<Matiere> matieres = ServiceLocator.getReferentielService()
+                    .getMatieresByClasseAndSemestre(classe.getId(), semestre);
             cbMatiere.setItems(FXCollections.observableArrayList(matieres));
             cbMatiere.setValue(null);
         } catch (Exception e) {
@@ -259,10 +289,18 @@ public class AffectationsPanel extends VBox {
             for (Enseignant enseignant : enseignants) {
                 List<Classe> classes = ServiceLocator.getReferentielService().getClassesByEnseignant(enseignant.getId());
                 for (Classe classe : classes) {
-                    List<Matiere> matieres = ServiceLocator.getReferentielService()
-                            .getMatieresByEnseignantAndClasse(enseignant.getId(), classe.getId());
-                    for (Matiere matiere : matieres) {
-                        affectations.add(new LigneAffectation(enseignant, classe, matiere));
+                    List<Integer> semestres = ServiceLocator.getReferentielService()
+                            .getSemestresByEnseignantAndClasse(enseignant.getId(), classe.getId());
+                    for (Integer semestre : semestres) {
+                        List<Matiere> matieres = ServiceLocator.getReferentielService()
+                                .getMatieresByEnseignantAndClasseAndSemestre(
+                                        enseignant.getId(),
+                                        classe.getId(),
+                                        semestre
+                                );
+                        for (Matiere matiere : matieres) {
+                            affectations.add(new LigneAffectation(enseignant, classe, matiere, semestre));
+                        }
                     }
                 }
             }
@@ -297,16 +335,17 @@ public class AffectationsPanel extends VBox {
     private void handleAffecter() {
         Enseignant enseignant = cbEnseignant.getValue();
         Classe classe = cbClasse.getValue();
+        Integer semestre = cbSemestre.getValue();
         Matiere matiere = cbMatiere.getValue();
 
-        if (enseignant == null || classe == null || matiere == null) {
+        if (enseignant == null || classe == null || matiere == null || semestre == null) {
             showWarning("Veuillez remplir tous les champs");
             return;
         }
 
         try {
             ServiceLocator.getReferentielService().affecterEnseignant(
-                    enseignant.getId(), classe.getId(), matiere.getId()
+                    enseignant.getId(), classe.getId(), matiere.getId(), semestre
             );
             showInfo("Affectation créée avec succès !\n" +
                     enseignant.getNom() + " " + enseignant.getPrenom() + " → " +
@@ -343,7 +382,8 @@ public class AffectationsPanel extends VBox {
             ServiceLocator.getReferentielService().retirerEnseignant(
                     selected.getEnseignant().getId(),
                     selected.getClasse().getId(),
-                    selected.getMatiere().getId()
+                selected.getMatiere().getId(),
+                selected.getSemestre()
             );
             showInfo("Affectation retirée avec succès !");
             loadAffectations();
@@ -375,11 +415,13 @@ public class AffectationsPanel extends VBox {
         private final Enseignant enseignant;
         private final Classe classe;
         private final Matiere matiere;
+        private final int semestre;
 
-        public LigneAffectation(Enseignant enseignant, Classe classe, Matiere matiere) {
+        public LigneAffectation(Enseignant enseignant, Classe classe, Matiere matiere, int semestre) {
             this.enseignant = enseignant;
             this.classe = classe;
             this.matiere = matiere;
+            this.semestre = semestre;
         }
 
         public Enseignant getEnseignant() {
@@ -392,6 +434,10 @@ public class AffectationsPanel extends VBox {
 
         public Matiere getMatiere() {
             return matiere;
+        }
+
+        public int getSemestre() {
+            return semestre;
         }
     }
 }

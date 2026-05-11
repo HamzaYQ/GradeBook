@@ -6,7 +6,7 @@ import java.util.List;
 
 public class ReleveDeNotes {
     private int id;
-    private Periode periode;
+    private int semestre;
     private String anneeAcademique;
     private double moyenneGenerale;
     private LocalDateTime genereLe;
@@ -18,9 +18,9 @@ public class ReleveDeNotes {
         this.lignes = new ArrayList<>();
     }
 
-    public ReleveDeNotes(int id, Periode periode, String anneeAcademique, Etudiant etudiant, Administration genereParAdmin) {
+    public ReleveDeNotes(int id, int semestre, String anneeAcademique, Etudiant etudiant, Administration genereParAdmin) {
         this.id = id;
-        this.periode = periode;
+        setSemestre(semestre);
         this.anneeAcademique = anneeAcademique;
         this.etudiant = etudiant;
         this.genereParAdmin = genereParAdmin;
@@ -36,12 +36,15 @@ public class ReleveDeNotes {
         this.id = id;
     }
 
-    public Periode getPeriode() {
-        return periode;
+    public int getSemestre() {
+        return semestre;
     }
 
-    public void setPeriode(Periode periode) {
-        this.periode = periode;
+    public void setSemestre(int semestre) {
+        if (semestre != 1 && semestre != 2) {
+            throw new IllegalArgumentException("Le semestre doit être 1 ou 2");
+        }
+        this.semestre = semestre;
     }
 
     public String getAnneeAcademique() {
@@ -109,7 +112,7 @@ public class ReleveDeNotes {
         int ligneCount = lignes != null ? lignes.size() : 0;
         return "ReleveDeNotes{" +
                 "id=" + id +
-                ", periode=" + periode +
+            ", semestre=" + semestre +
                 ", anneeAcademique='" + anneeAcademique + '\'' +
                 ", moyenneGenerale=" + moyenneGenerale +
                 ", genereLe=" + genereLe +

@@ -20,10 +20,11 @@ public class ReferentielServiceImpl implements IReferentielService {
     private static final String ERR_NIVEAU_CLASSE = "Le niveau est obligatoire";
     private static final String ERR_INTITULE_MATIERE = "L'intitule est obligatoire";
     private static final String ERR_COEFFICIENT_MATIERE = "Le coefficient doit être supérieur à 0";
-    private static final String ERR_AFFECTATION_EXISTE = "Cette affectation existe déjà";
+    private static final String ERR_AFFECTATION_EXISTE = "Cette affectation existe déjà pour ce semestre";
     private static final String ERR_CLASSE_INTROUVABLE = "Classe introuvable";
     private static final String ERR_MATIERE_INTROUVABLE = "Matière introuvable";
     private static final String ERR_CLASSE_MATIERE_EXISTE = "Cette matière est déjà associée à cette classe";
+    private static final String ERR_MATIERE_NON_ASSOCIEE = "Cette matière n'est pas associée à cette classe";
     private static final String ERR_CLASSE_MATIERE_RETIRE =
             "Impossible de retirer : un enseignant est affecté à cette matière pour cette classe";
         private static final String ERR_MATIERE_RATTACHEE =
@@ -127,21 +128,29 @@ public class ReferentielServiceImpl implements IReferentielService {
     }
 
     @Override
-    public void affecterEnseignant(int idEnseignant, int idClasse, int idMatiere) {
-        if (coursDao.existsCours(idEnseignant, idClasse, idMatiere)) {
+    public void affecterEnseignant(int idEnseignant, int idClasse, int idMatiere, int semestre) {
+        if (coursDao.existsCours(idEnseignant, idClasse, idMatiere, semestre)) {
             throw new IllegalStateException(ERR_AFFECTATION_EXISTE);
         }
-        coursDao.addCours(idEnseignant, idClasse, idMatiere);
+        if (!classeMatiereDao.existsClasseMatiere(idClasse, idMatiere)) {
+            throw new IllegalStateException(ERR_MATIERE_NON_ASSOCIEE);
+        }
+        coursDao.addCours(idEnseignant, idClasse, idMatiere, semestre);
     }
 
     @Override
-    public void retirerEnseignant(int idEnseignant, int idClasse, int idMatiere) {
-        coursDao.removeCours(idEnseignant, idClasse, idMatiere);
+    public void retirerEnseignant(int idEnseignant, int idClasse, int idMatiere, int semestre) {
+        coursDao.removeCours(idEnseignant, idClasse, idMatiere, semestre);
     }
 
     @Override
     public List<Matiere> getMatieresByEnseignantAndClasse(int idEnseignant, int idClasse) {
         return coursDao.findMatieresByEnseignantAndClasse(idEnseignant, idClasse);
+    }
+
+    @Override
+    public List<Matiere> getMatieresByEnseignantAndClasseAndSemestre(int idEnseignant, int idClasse, int semestre) {
+        return coursDao.findMatieresByEnseignantAndClasseAndSemestre(idEnseignant, idClasse, semestre);
     }
 
     @Override
@@ -172,6 +181,11 @@ public class ReferentielServiceImpl implements IReferentielService {
     }
 
     @Override
+    public List<Matiere> getMatieresByClasseAndSemestre(int idClasse, int semestre) {
+        return classeMatiereDao.findMatieresByClasse(idClasse);
+    }
+
+    @Override
     public List<Classe> getClassesByMatiere(int idMatiere) {
         return classeMatiereDao.findClassesByMatiere(idMatiere);
     }
@@ -184,6 +198,16 @@ public class ReferentielServiceImpl implements IReferentielService {
     @Override
     public List<Classe> getClassesByEnseignant(int idEnseignant) {
         return coursDao.findClassesByEnseignant(idEnseignant);
+    }
+
+    @Override
+    public List<Classe> getClassesByEnseignantAndSemestre(int idEnseignant, int semestre) {
+        return coursDao.findClassesByEnseignantAndSemestre(idEnseignant, semestre);
+    }
+
+    @Override
+    public List<Integer> getSemestresByEnseignantAndClasse(int idEnseignant, int idClasse) {
+        return coursDao.findSemestresByEnseignantAndClasse(idEnseignant, idClasse);
     }
 
     @Override

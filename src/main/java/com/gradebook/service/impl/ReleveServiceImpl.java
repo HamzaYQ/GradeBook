@@ -9,7 +9,6 @@ import com.gradebook.model.Classe;
 import com.gradebook.model.Etudiant;
 import com.gradebook.model.LigneReleve;
 import com.gradebook.model.Matiere;
-import com.gradebook.model.Periode;
 import com.gradebook.model.ReleveDeNotes;
 import com.gradebook.service.ICalculService;
 import com.gradebook.service.IReleveService;
@@ -72,7 +71,7 @@ public class ReleveServiceImpl implements IReleveService {
     }
 
     @Override
-    public ReleveDeNotes genererReleve(int idEtudiant, Periode periode, String anneeAcademique, int idAdmin) {
+    public ReleveDeNotes genererReleve(int idEtudiant, int semestre, String anneeAcademique, int idAdmin) {
         Optional<Etudiant> etudiantOpt = etudiantDao.findById(idEtudiant);
         if (etudiantOpt.isEmpty()) {
             throw new IllegalStateException("Etudiant introuvable");
@@ -92,14 +91,16 @@ public class ReleveServiceImpl implements IReleveService {
 
         List<Matiere> matieres = matiereDao.findByClasse(classe.getId());
 
-        ReleveDeNotes releve = new ReleveDeNotes(UNASSIGNED_ID, periode, anneeAcademique, etudiant, admin);
+        ReleveDeNotes releve = new ReleveDeNotes(UNASSIGNED_ID, semestre, anneeAcademique, etudiant, admin);
         for (Matiere matiere : matieres) {
-            double moyenne = calculService.calculerMoyenneParMatiere(idEtudiant, matiere.getId());
-            LigneReleve ligne = new LigneReleve(matiere, moyenne, matiere.getCoefficient());
-            releve.addLigne(ligne);
+            double moyenne = calculService.calculerMoyenneParMatiere(idEtudiant, matiere.getId(), semestre);
+            if (moyenne > 0.0) {
+                LigneReleve ligne = new LigneReleve(matiere, moyenne, matiere.getCoefficient());
+                releve.addLigne(ligne);
+            }
         }
 
-        double moyenneGenerale = calculService.calculerMoyenneGenerale(idEtudiant, classe.getId());
+        double moyenneGenerale = calculService.calculerMoyenneGenerale(idEtudiant, classe.getId(), semestre);
         releve.setMoyenneGenerale(moyenneGenerale);
 
         releveDao.create(releve);
@@ -107,12 +108,12 @@ public class ReleveServiceImpl implements IReleveService {
     }
 
     @Override
-    public List<ReleveDeNotes> genererRelevesPourClasse(int idClasse, Periode periode, String anneeAcademique, int idAdmin) {
+    public List<ReleveDeNotes> genererRelevesPourClasse(int idClasse, int semestre, String anneeAcademique, int idAdmin) {
         List<Etudiant> etudiants = etudiantDao.findByClasse(idClasse);
         List<ReleveDeNotes> releves = new ArrayList<>();
 
         for (Etudiant etudiant : etudiants) {
-            releves.add(genererReleve(etudiant.getId(), periode, anneeAcademique, idAdmin));
+            releves.add(genererReleve(etudiant.getId(), semestre, anneeAcademique, idAdmin));
         }
 
         return releves;
@@ -124,6 +125,11 @@ public class ReleveServiceImpl implements IReleveService {
     }
 
     @Override
+    public Optional<ReleveDeNotes> getReleveByEtudiantAndSemestre(int idEtudiant, int semestre) {
+        return releveDao.findByEtudiantAndSemestre(idEtudiant, semestre);
+    }
+
+    @Override
     public File exporterRelevePDF(ReleveDeNotes releve) {
         File exportDir = new File(EXPORT_DIR_NAME);
         if (!exportDir.exists()) {
@@ -132,7 +138,7 @@ public class ReleveServiceImpl implements IReleveService {
 
         Etudiant etudiant = releve.getEtudiant();
         String cne = etudiant != null ? etudiant.getCne() : "inconnu";
-        String periode = releve.getPeriode() != null ? releve.getPeriode().name() : "NA";
+        String periode = formatSemestreCode(releve.getSemestre());
         String annee = releve.getAnneeAcademique() != null ? releve.getAnneeAcademique() : "NA";
 
         String fileName = FILE_PREFIX + cne + "_" + periode + "_" + annee + FILE_EXTENSION;
@@ -160,8 +166,8 @@ public class ReleveServiceImpl implements IReleveService {
                     "Nom complet : " + nomComplet + "\n" +
                     "CNE : " + cne + "\n" +
                     "Classe : " + classeNom + "\n" +
-                    "Année académique : " + annee + "\n" +
-                    "Période : " + periode,
+                        "Année académique : " + annee + "\n" +
+                        "Semestre : " + formatSemestreLabel(releve.getSemestre()),
                     fontNormal
             );
             document.add(infos);
@@ -246,5 +252,13 @@ public class ReleveServiceImpl implements IReleveService {
     private String formatTwo(double valeur) {
         double arrondi = Math.round(valeur * ROUND_TWO) / ROUND_TWO;
         return String.format(Locale.US, "%.2f", arrondi);
+    }
+
+    private String formatSemestreLabel(int semestre) {
+        return "Semestre " + semestre;
+    }
+
+    private String formatSemestreCode(int semestre) {
+        return "SEMESTRE_" + semestre;
     }
 }

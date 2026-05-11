@@ -21,7 +21,8 @@ import java.util.Optional;
 public class NoteDaoImpl implements INoteDao {
     private static final String SELECT_WITH_JOINS =
             "SELECT n.*, et.nom as etudiant_nom, et.prenom as etudiant_prenom, et.cne, " +
-            "ev.libelle as eval_libelle, ev.type, ev.session, ev.coefficient as eval_coef, " +
+            "ev.libelle as eval_libelle, ev.type, ev.session, ev.semestre as eval_semestre, " +
+            "ev.coefficient as eval_coef, " +
             "ens.nom as ens_nom, ens.prenom as ens_prenom " +
             "FROM note n " +
             "JOIN etudiant et ON n.id_etudiant = et.id_etudiant " +
@@ -133,6 +134,45 @@ public class NoteDaoImpl implements INoteDao {
     }
 
     @Override
+    public List<Note> findByEtudiantAndSemestre(int idEtudiant, int semestre) {
+        String sql = SELECT_WITH_JOINS + "WHERE n.id_etudiant = ? AND ev.semestre = ?";
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        List<Note> result = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idEtudiant);
+            stmt.setInt(2, semestre);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapResultSet(rs));
+                }
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Note> findByEtudiantAndMatiereAndSemestre(int idEtudiant, int idMatiere, int semestre) {
+        String sql = SELECT_WITH_JOINS + "WHERE n.id_etudiant = ? AND ev.id_matiere = ? AND ev.semestre = ?";
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        List<Note> result = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idEtudiant);
+            stmt.setInt(2, idMatiere);
+            stmt.setInt(3, semestre);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapResultSet(rs));
+                }
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
     public boolean existsByEtudiantAndEvaluation(int idEtudiant, int idEvaluation) {
         String sql = "SELECT COUNT(*) FROM note WHERE id_etudiant = ? AND id_evaluation = ?";
         Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -181,6 +221,7 @@ public class NoteDaoImpl implements INoteDao {
         if (sessionValue != null) {
             evaluation.setSession(Session.valueOf(sessionValue));
         }
+        evaluation.setSemestre(rs.getInt("eval_semestre"));
         evaluation.setCoefficient(rs.getDouble("eval_coef"));
 
         Enseignant enseignant = new Enseignant();

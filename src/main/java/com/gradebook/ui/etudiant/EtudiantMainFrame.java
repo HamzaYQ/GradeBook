@@ -300,7 +300,7 @@ public class EtudiantMainFrame extends Application {
         relevesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         relevesTable.setPlaceholder(new Label(RELEVES_EMPTY_TEXT));
 
-        TableColumn<ReleveDeNotes, String> periodeCol = new TableColumn<>("Période");
+        TableColumn<ReleveDeNotes, String> periodeCol = new TableColumn<>("Semestre");
         periodeCol.setCellValueFactory(data -> new SimpleStringProperty(getPeriodeLibelle(data.getValue())));
 
         TableColumn<ReleveDeNotes, String> anneeCol = new TableColumn<>("Année académique");
@@ -330,7 +330,13 @@ public class EtudiantMainFrame extends Application {
                 return;
             }
 
-            List<Note> notes = ServiceLocator.getNoteService().getNotesByEtudiant(etudiant.getId());
+            int semestre = getSelectedSemestre();
+            List<Note> notes;
+            if (semestre == 0) {
+                notes = ServiceLocator.getNoteService().getNotesByEtudiant(etudiant.getId());
+            } else {
+                notes = ServiceLocator.getNoteService().getNotesByEtudiantAndSemestre(etudiant.getId(), semestre);
+            }
             enrichNotes(notes);
 
             notesTable.setItems(FXCollections.observableArrayList(notes));
@@ -339,13 +345,13 @@ public class EtudiantMainFrame extends Application {
             notesEmptyLabel.setManaged(empty);
 
             List<Matiere> matieres = ServiceLocator.getMatiereDao().findByClasse(etudiant.getClasse().getId());
-            updateMoyennes(matieres);
+            updateMoyennes(matieres, semestre);
         } catch (Exception e) {
             showErrorAlert(e);
         }
     }
 
-    private void updateMoyennes(List<Matiere> matieres) {
+    private void updateMoyennes(List<Matiere> matieres, int semestre) {
         moyennesGrid.getChildren().clear();
         if (matieres == null) {
             matieres = new ArrayList<>();
@@ -353,15 +359,30 @@ public class EtudiantMainFrame extends Application {
 
         int row = 0;
         for (Matiere matiere : matieres) {
-            double moyenne = ServiceLocator.getCalculService()
-                    .calculerMoyenneParMatiere(etudiant.getId(), matiere.getId());
+            double moyenne;
+            if (semestre == 0) {
+            double moyenneS1 = ServiceLocator.getCalculService()
+                .calculerMoyenneParMatiere(etudiant.getId(), matiere.getId(), 1);
+            double moyenneS2 = ServiceLocator.getCalculService()
+                .calculerMoyenneParMatiere(etudiant.getId(), matiere.getId(), 2);
+            moyenne = (moyenneS1 + moyenneS2) / 2.0;
+            } else {
+            moyenne = ServiceLocator.getCalculService()
+                .calculerMoyenneParMatiere(etudiant.getId(), matiere.getId(), semestre);
+            }
             String text = "Moyenne " + matiere.getIntitule() + " : " + formatTwo(moyenne) + "/20";
             Label label = new Label(text);
             moyennesGrid.add(label, 0, row++);
         }
 
-        double moyenneGenerale = ServiceLocator.getCalculService()
-                .calculerMoyenneGenerale(etudiant.getId(), etudiant.getClasse().getId());
+        double moyenneGenerale;
+        if (semestre == 0) {
+            moyenneGenerale = ServiceLocator.getCalculService()
+                .calculerMoyenneAnnuelle(etudiant.getId(), etudiant.getClasse().getId());
+        } else {
+            moyenneGenerale = ServiceLocator.getCalculService()
+                .calculerMoyenneGenerale(etudiant.getId(), etudiant.getClasse().getId(), semestre);
+        }
         moyenneGeneraleLabel.setText("Moyenne Générale : " + formatTwo(moyenneGenerale) + "/20");
         moyenneGeneraleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: " +
                 getMoyenneColor(moyenneGenerale) + ";");
@@ -486,10 +507,11 @@ public class EtudiantMainFrame extends Application {
     }
 
     private String getPeriodeLibelle(ReleveDeNotes releve) {
-        if (releve.getPeriode() == null) {
+        int semestre = releve.getSemestre();
+        if (semestre != 1 && semestre != 2) {
             return "-";
         }
-        return releve.getPeriode().getLibelle();
+        return "Semestre " + semestre;
     }
 
     private String getAnneeAcademique(ReleveDeNotes releve) {
@@ -506,7 +528,7 @@ public class EtudiantMainFrame extends Application {
 
     private String buildReleveFileName(ReleveDeNotes releve) {
         String cne = releve.getEtudiant() != null ? releve.getEtudiant().getCne() : "etudiant";
-        String periode = releve.getPeriode() != null ? releve.getPeriode().name() : "NA";
+        String periode = "SEMESTRE_" + releve.getSemestre();
         String annee = releve.getAnneeAcademique() != null ? releve.getAnneeAcademique() : "NA";
         return "releve_" + cne + "_" + periode + "_" + annee + ".pdf";
     }
@@ -519,6 +541,17 @@ public class EtudiantMainFrame extends Application {
             return COLOR_WARNING;
         }
         return COLOR_DANGER;
+    }
+
+    private int getSelectedSemestre() {
+        String periode = periodeCombo != null ? periodeCombo.getValue() : null;
+        if (PERIOD_SEM1.equals(periode)) {
+            return 1;
+        }
+        if (PERIOD_SEM2.equals(periode)) {
+            return 2;
+        }
+        return 0;
     }
 
     private String formatTwo(double valeur) {

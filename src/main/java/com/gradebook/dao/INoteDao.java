@@ -18,6 +18,10 @@ public interface INoteDao {
 
     List<Note> findByEtudiantAndMatiere(int idEtudiant, int idMatiere);
 
+    List<Note> findByEtudiantAndSemestre(int idEtudiant, int semestre);
+
+    List<Note> findByEtudiantAndMatiereAndSemestre(int idEtudiant, int idMatiere, int semestre);
+
     boolean existsByEtudiantAndEvaluation(int idEtudiant, int idEvaluation);
 
     void deleteByEtudiantAndEvaluation(int idEtudiant, int idEvaluation);

@@ -4,7 +4,6 @@ import com.gradebook.config.DatabaseConnection;
 import com.gradebook.dao.IReleveDeNotesDao;
 import com.gradebook.model.Administration;
 import com.gradebook.model.Etudiant;
-import com.gradebook.model.Periode;
 import com.gradebook.model.ReleveDeNotes;
 
 import java.sql.Connection;
@@ -12,7 +11,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,15 +25,11 @@ public class ReleveDeNotesDaoImpl implements IReleveDeNotesDao {
 
     @Override
     public void create(ReleveDeNotes releve) {
-        String sql = "INSERT INTO releve_de_notes (periode, annee_academique, moyenne_generale, " +
+        String sql = "INSERT INTO releve_de_notes (semestre, annee_academique, moyenne_generale, " +
                 "id_etudiant, id_administration) VALUES (?, ?, ?, ?, ?)";
         Connection conn = DatabaseConnection.getInstance().getConnection();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            if (releve.getPeriode() != null) {
-                stmt.setString(1, releve.getPeriode().name());
-            } else {
-                stmt.setNull(1, Types.VARCHAR);
-            }
+            stmt.setInt(1, releve.getSemestre());
             stmt.setString(2, releve.getAnneeAcademique());
             stmt.setDouble(3, releve.getMoyenneGenerale());
             stmt.setInt(4, releve.getEtudiant().getId());
@@ -81,15 +75,11 @@ public class ReleveDeNotesDaoImpl implements IReleveDeNotesDao {
 
     @Override
     public void update(ReleveDeNotes releve) {
-        String sql = "UPDATE releve_de_notes SET periode = ?, annee_academique = ?, moyenne_generale = ? " +
+        String sql = "UPDATE releve_de_notes SET semestre = ?, annee_academique = ?, moyenne_generale = ? " +
                 "WHERE id_releve = ?";
         Connection conn = DatabaseConnection.getInstance().getConnection();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            if (releve.getPeriode() != null) {
-                stmt.setString(1, releve.getPeriode().name());
-            } else {
-                stmt.setNull(1, Types.VARCHAR);
-            }
+            stmt.setInt(1, releve.getSemestre());
             stmt.setString(2, releve.getAnneeAcademique());
             stmt.setDouble(3, releve.getMoyenneGenerale());
             stmt.setInt(4, releve.getId());
@@ -130,12 +120,12 @@ public class ReleveDeNotesDaoImpl implements IReleveDeNotesDao {
     }
 
     @Override
-    public Optional<ReleveDeNotes> findByEtudiantAndPeriode(int idEtudiant, Periode periode) {
-        String sql = SELECT_WITH_JOINS + "WHERE r.id_etudiant = ? AND r.periode = ?";
+    public Optional<ReleveDeNotes> findByEtudiantAndSemestre(int idEtudiant, int semestre) {
+        String sql = SELECT_WITH_JOINS + "WHERE r.id_etudiant = ? AND r.semestre = ?";
         Connection conn = DatabaseConnection.getInstance().getConnection();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idEtudiant);
-            stmt.setString(2, periode != null ? periode.name() : null);
+            stmt.setInt(2, semestre);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapResultSet(rs));
@@ -165,14 +155,29 @@ public class ReleveDeNotesDaoImpl implements IReleveDeNotesDao {
         }
     }
 
+    @Override
+    public List<ReleveDeNotes> findBySemestre(int semestre) {
+        String sql = SELECT_WITH_JOINS + "WHERE r.semestre = ?";
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        List<ReleveDeNotes> result = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, semestre);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapResultSet(rs));
+                }
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
     private ReleveDeNotes mapResultSet(ResultSet rs) throws SQLException {
         ReleveDeNotes releve = new ReleveDeNotes();
         releve.setId(rs.getInt("id_releve"));
 
-        String periodeValue = rs.getString("periode");
-        if (periodeValue != null) {
-            releve.setPeriode(Periode.valueOf(periodeValue));
-        }
+        releve.setSemestre(rs.getInt("semestre"));
 
         releve.setAnneeAcademique(rs.getString("annee_academique"));
         releve.setMoyenneGenerale(rs.getDouble("moyenne_generale"));

@@ -11,5 +11,11 @@ public interface IEvaluationDao extends IDao<Evaluation> {
 
     List<Evaluation> findByClasseAndMatiere(int idClasse, int idMatiere);
 
+    List<Evaluation> findByClasseAndMatiereBySemestre(int idClasse, int idMatiere, int semestre);
+
     List<Evaluation> findByEnseignant(int idEnseignant);
+
+    List<Evaluation> findByEnseignantAndSemestre(int idEnseignant, int semestre);
+
+    List<Evaluation> findBySemestre(int semestre);
 }

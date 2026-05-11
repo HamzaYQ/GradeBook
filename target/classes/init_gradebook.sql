@@ -68,6 +68,8 @@ CREATE TABLE evaluation (
   libelle VARCHAR(100) NOT NULL,
   type ENUM('EXAMEN_FINAL','CONTROLE_CONTINU','TP','PROJET') NOT NULL,
   session ENUM('NORMALE','RATTRAPAGE') NOT NULL DEFAULT 'NORMALE',
+  semestre TINYINT NOT NULL,
+  CONSTRAINT chk_semestre_eval CHECK (semestre IN (1, 2)),
   coefficient FLOAT NOT NULL,
   CONSTRAINT chk_eval_coefficient CHECK (coefficient > 0),
   date_session DATE NOT NULL,
@@ -110,7 +112,8 @@ CREATE TABLE presence (
 -- Table: releve_de_notes
 CREATE TABLE releve_de_notes (
   id_releve INT PRIMARY KEY AUTO_INCREMENT,
-  periode ENUM('SEMESTRE_1','SEMESTRE_2','ANNUEL') NOT NULL,
+  semestre TINYINT NOT NULL,
+  CONSTRAINT chk_semestre_releve CHECK (semestre IN (1, 2)),
   annee_academique VARCHAR(9) NOT NULL,
   moyenne_generale FLOAT,
   genere_le TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -125,7 +128,9 @@ CREATE TABLE cours (
   id_enseignant INT NOT NULL,
   id_classe INT NOT NULL,
   id_matiere INT NOT NULL,
-  PRIMARY KEY (id_enseignant, id_classe, id_matiere),
+  semestre TINYINT NOT NULL,
+  CONSTRAINT chk_semestre CHECK (semestre IN (1, 2)),
+  PRIMARY KEY (id_enseignant, id_classe, id_matiere, semestre),
   FOREIGN KEY (id_enseignant) REFERENCES enseignant(id_enseignant),
   FOREIGN KEY (id_classe) REFERENCES classe(id_classe),
   FOREIGN KEY (id_matiere) REFERENCES matiere(id_matiere)
@@ -165,17 +170,17 @@ INSERT INTO etudiant (nom, prenom, email, mot_de_passe, cne, id_classe) VALUES
   ('RACHIDI', 'Sara', 'rachidi@enset.ma', '36432aa0a54a06c13ca2ff16cef78ca66e1cd5fa869f36791a79bc4f4c5d8120', 'EE004', 1);
 
 -- Donnees de test: affectations enseignants
-INSERT INTO cours (id_enseignant, id_classe, id_matiere) VALUES
-  (1, 1, 1),
-  (1, 1, 2),
-  (2, 1, 3);
+INSERT INTO cours (id_enseignant, id_classe, id_matiere, semestre) VALUES
+  (1, 1, 1, 1),
+  (1, 1, 2, 1),
+  (2, 1, 3, 2);
 
 -- Donnees de test: evaluations
-INSERT INTO evaluation (libelle, type, session, coefficient, date_session, id_matiere, id_classe, id_enseignant) VALUES
-  ('Controle 1', 'CONTROLE_CONTINU', 'NORMALE', 1, '2025-10-15', 1, 1, 1),
-  ('Examen Final S1', 'EXAMEN_FINAL', 'NORMALE', 2, '2026-01-20', 2, 1, 1),
-  ('TP Note 1', 'TP', 'NORMALE', 1, '2025-11-05', 3, 1, 2),
-  ('Rattrapage POO', 'EXAMEN_FINAL', 'RATTRAPAGE', 2, '2026-02-10', 1, 1, 1);
+INSERT INTO evaluation (libelle, type, session, semestre, coefficient, date_session, id_matiere, id_classe, id_enseignant) VALUES
+  ('Controle 1', 'CONTROLE_CONTINU', 'NORMALE', 1, 1, '2025-10-15', 1, 1, 1),
+  ('Examen Final S1', 'EXAMEN_FINAL', 'NORMALE', 1, 2, '2026-01-20', 2, 1, 1),
+  ('TP Note 1', 'TP', 'NORMALE', 2, 1, '2025-11-05', 3, 1, 2),
+  ('Rattrapage POO', 'EXAMEN_FINAL', 'RATTRAPAGE', 2, 2, '2026-02-10', 1, 1, 1);
 
 -- Donnees de test: notes
 INSERT INTO note (id_etudiant, id_evaluation, valeur, id_enseignant) VALUES

@@ -15,5 +15,9 @@ public interface INoteService {
 
     List<Note> getNotesByEtudiantAndMatiere(int idEtudiant, int idMatiere);
 
+    List<Note> getNotesByEtudiantAndSemestre(int idEtudiant, int semestre);
+
+    List<Note> getNotesByEtudiantAndMatiereAndSemestre(int idEtudiant, int idMatiere, int semestre);
+
     boolean noteExiste(int idEtudiant, int idEvaluation);
 }

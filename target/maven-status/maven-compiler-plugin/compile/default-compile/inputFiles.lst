@@ -13,6 +13,7 @@ C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\ui\administration\AffectationsPanel.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\model\Utilisateur.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\config\ServiceLocator.java
+C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\ui\enseignant\PresenceEnseignantPanel.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\service\INoteService.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\service\ICalculService.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\dao\impl\MatiereDaoImpl.java
@@ -36,6 +37,8 @@ C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\model\Session.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\dao\impl\NoteDaoImpl.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\ui\administration\ReferentielPanel.java
+C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\ui\enseignant\StatistiquesPanel.java
+C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\ui\enseignant\SaisieNotesPanel.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\dao\impl\AdministrationDaoImpl.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\config\DatabaseConnection.java
 C:\Users\USER\Documents\Cycle Ingenieur BDCC\S2\Conception et POO\GradeBook\src\main\java\com\gradebook\model\LigneReleve.java

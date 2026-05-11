@@ -33,8 +33,8 @@ public class CalculServiceImpl implements ICalculService {
     }
 
     @Override
-    public double calculerMoyenneParMatiere(int idEtudiant, int idMatiere) {
-        List<Note> notes = noteDao.findByEtudiantAndMatiere(idEtudiant, idMatiere);
+    public double calculerMoyenneParMatiere(int idEtudiant, int idMatiere, int semestre) {
+        List<Note> notes = noteDao.findByEtudiantAndMatiereAndSemestre(idEtudiant, idMatiere, semestre);
         if (notes.isEmpty()) {
             return NOTE_MIN_DEFAULT;
         }
@@ -56,7 +56,7 @@ public class CalculServiceImpl implements ICalculService {
     }
 
     @Override
-    public double calculerMoyenneGenerale(int idEtudiant, int idClasse) {
+    public double calculerMoyenneGenerale(int idEtudiant, int idClasse, int semestre) {
         List<Matiere> matieres = matiereDao.findByClasse(idClasse);
         if (matieres.isEmpty()) {
             return NOTE_MIN_DEFAULT;
@@ -66,7 +66,11 @@ public class CalculServiceImpl implements ICalculService {
         double sommeCoeff = 0.0;
 
         for (Matiere matiere : matieres) {
-            double moyenne = calculerMoyenneParMatiere(idEtudiant, matiere.getId());
+            List<Note> notes = noteDao.findByEtudiantAndMatiereAndSemestre(idEtudiant, matiere.getId(), semestre);
+            if (notes.isEmpty()) {
+                continue;
+            }
+            double moyenne = calculerMoyenneParMatiere(idEtudiant, matiere.getId(), semestre);
             double coeff = matiere.getCoefficient();
             sommePonderee += moyenne * coeff;
             sommeCoeff += coeff;
@@ -77,6 +81,13 @@ public class CalculServiceImpl implements ICalculService {
         }
 
         return roundTwo(sommePonderee / sommeCoeff);
+    }
+
+    @Override
+    public double calculerMoyenneAnnuelle(int idEtudiant, int idClasse) {
+        double moyenneS1 = calculerMoyenneGenerale(idEtudiant, idClasse, 1);
+        double moyenneS2 = calculerMoyenneGenerale(idEtudiant, idClasse, 2);
+        return roundTwo((moyenneS1 + moyenneS2) / 2.0);
     }
 
     @Override
@@ -102,8 +113,8 @@ public class CalculServiceImpl implements ICalculService {
     }
 
     @Override
-    public Statistiques calculerStatistiquesClasse(int idClasse, int idMatiere) {
-        List<Evaluation> evaluations = evaluationDao.findByClasseAndMatiere(idClasse, idMatiere);
+    public Statistiques calculerStatistiquesClasse(int idClasse, int idMatiere, int semestre) {
+        List<Evaluation> evaluations = evaluationDao.findByClasseAndMatiereBySemestre(idClasse, idMatiere, semestre);
         if (evaluations.isEmpty()) {
             return new Statistiques(0.0, 0.0, 0.0, 0);
         }

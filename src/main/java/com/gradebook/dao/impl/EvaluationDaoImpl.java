@@ -31,8 +31,8 @@ public class EvaluationDaoImpl implements IEvaluationDao {
 
     @Override
     public void create(Evaluation evaluation) {
-        String sql = "INSERT INTO evaluation (libelle, type, session, coefficient, date_session, " +
-                "id_matiere, id_classe, id_enseignant) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO evaluation (libelle, type, session, semestre, coefficient, date_session, " +
+            "id_matiere, id_classe, id_enseignant) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = DatabaseConnection.getInstance().getConnection();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, evaluation.getLibelle());
@@ -49,30 +49,32 @@ public class EvaluationDaoImpl implements IEvaluationDao {
                 stmt.setNull(3, Types.VARCHAR);
             }
 
-            stmt.setDouble(4, evaluation.getCoefficient());
+            stmt.setInt(4, evaluation.getSemestre());
+
+            stmt.setDouble(5, evaluation.getCoefficient());
 
             if (evaluation.getDateSession() != null) {
-                stmt.setDate(5, Date.valueOf(evaluation.getDateSession()));
+                stmt.setDate(6, Date.valueOf(evaluation.getDateSession()));
             } else {
-                stmt.setNull(5, Types.DATE);
+                stmt.setNull(6, Types.DATE);
             }
 
             if (evaluation.getMatiere() != null) {
-                stmt.setInt(6, evaluation.getMatiere().getId());
-            } else {
-                stmt.setNull(6, Types.INTEGER);
-            }
-
-            if (evaluation.getClasse() != null) {
-                stmt.setInt(7, evaluation.getClasse().getId());
+                stmt.setInt(7, evaluation.getMatiere().getId());
             } else {
                 stmt.setNull(7, Types.INTEGER);
             }
 
-            if (evaluation.getEnseignant() != null) {
-                stmt.setInt(8, evaluation.getEnseignant().getId());
+            if (evaluation.getClasse() != null) {
+                stmt.setInt(8, evaluation.getClasse().getId());
             } else {
                 stmt.setNull(8, Types.INTEGER);
+            }
+
+            if (evaluation.getEnseignant() != null) {
+                stmt.setInt(9, evaluation.getEnseignant().getId());
+            } else {
+                stmt.setNull(9, Types.INTEGER);
             }
 
             stmt.executeUpdate();
@@ -116,8 +118,8 @@ public class EvaluationDaoImpl implements IEvaluationDao {
 
     @Override
     public void update(Evaluation evaluation) {
-        String sql = "UPDATE evaluation SET libelle = ?, type = ?, session = ?, coefficient = ?, " +
-                "date_session = ?, id_matiere = ?, id_classe = ?, id_enseignant = ? " +
+        String sql = "UPDATE evaluation SET libelle = ?, type = ?, session = ?, semestre = ?, coefficient = ?, " +
+            "date_session = ?, id_matiere = ?, id_classe = ?, id_enseignant = ? " +
                 "WHERE id_evaluation = ?";
         Connection conn = DatabaseConnection.getInstance().getConnection();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -135,33 +137,35 @@ public class EvaluationDaoImpl implements IEvaluationDao {
                 stmt.setNull(3, Types.VARCHAR);
             }
 
-            stmt.setDouble(4, evaluation.getCoefficient());
+            stmt.setInt(4, evaluation.getSemestre());
+
+            stmt.setDouble(5, evaluation.getCoefficient());
 
             if (evaluation.getDateSession() != null) {
-                stmt.setDate(5, Date.valueOf(evaluation.getDateSession()));
+                stmt.setDate(6, Date.valueOf(evaluation.getDateSession()));
             } else {
-                stmt.setNull(5, Types.DATE);
+                stmt.setNull(6, Types.DATE);
             }
 
             if (evaluation.getMatiere() != null) {
-                stmt.setInt(6, evaluation.getMatiere().getId());
-            } else {
-                stmt.setNull(6, Types.INTEGER);
-            }
-
-            if (evaluation.getClasse() != null) {
-                stmt.setInt(7, evaluation.getClasse().getId());
+                stmt.setInt(7, evaluation.getMatiere().getId());
             } else {
                 stmt.setNull(7, Types.INTEGER);
             }
 
-            if (evaluation.getEnseignant() != null) {
-                stmt.setInt(8, evaluation.getEnseignant().getId());
+            if (evaluation.getClasse() != null) {
+                stmt.setInt(8, evaluation.getClasse().getId());
             } else {
                 stmt.setNull(8, Types.INTEGER);
             }
 
-            stmt.setInt(9, evaluation.getId());
+            if (evaluation.getEnseignant() != null) {
+                stmt.setInt(9, evaluation.getEnseignant().getId());
+            } else {
+                stmt.setNull(9, Types.INTEGER);
+            }
+
+            stmt.setInt(10, evaluation.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
@@ -236,12 +240,69 @@ public class EvaluationDaoImpl implements IEvaluationDao {
     }
 
     @Override
+    public List<Evaluation> findByClasseAndMatiereBySemestre(int idClasse, int idMatiere, int semestre) {
+        String sql = SELECT_WITH_JOINS + "WHERE ev.id_classe = ? AND ev.id_matiere = ? AND ev.semestre = ?";
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        List<Evaluation> result = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idClasse);
+            stmt.setInt(2, idMatiere);
+            stmt.setInt(3, semestre);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapResultSet(rs));
+                }
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
     public List<Evaluation> findByEnseignant(int idEnseignant) {
         String sql = SELECT_WITH_JOINS + "WHERE ev.id_enseignant = ?";
         Connection conn = DatabaseConnection.getInstance().getConnection();
         List<Evaluation> result = new ArrayList<>();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idEnseignant);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapResultSet(rs));
+                }
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Evaluation> findByEnseignantAndSemestre(int idEnseignant, int semestre) {
+        String sql = SELECT_WITH_JOINS + "WHERE ev.id_enseignant = ? AND ev.semestre = ?";
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        List<Evaluation> result = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idEnseignant);
+            stmt.setInt(2, semestre);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapResultSet(rs));
+                }
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Evaluation> findBySemestre(int semestre) {
+        String sql = SELECT_WITH_JOINS + "WHERE ev.semestre = ?";
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        List<Evaluation> result = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, semestre);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     result.add(mapResultSet(rs));
@@ -267,6 +328,8 @@ public class EvaluationDaoImpl implements IEvaluationDao {
         if (sessionValue != null) {
             evaluation.setSession(Session.valueOf(sessionValue));
         }
+
+        evaluation.setSemestre(rs.getInt("semestre"));
 
         evaluation.setCoefficient(rs.getDouble("coefficient"));
 

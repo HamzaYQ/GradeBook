@@ -9,6 +9,7 @@ public class Evaluation {
     private String libelle;
     private TypeEvaluation type;
     private Session session;
+    private int semestre;
     private double coefficient;
     private LocalDate dateSession;
     private Matiere matiere;
@@ -20,12 +21,13 @@ public class Evaluation {
         this.notes = new ArrayList<>();
     }
 
-    public Evaluation(int id, String libelle, TypeEvaluation type, Session session, double coefficient,
+    public Evaluation(int id, String libelle, TypeEvaluation type, Session session, int semestre, double coefficient,
                       LocalDate dateSession, Matiere matiere, Classe classe, Enseignant enseignant) {
         this.id = id;
         this.libelle = libelle;
         this.type = type;
         this.session = session;
+        setSemestre(semestre);
         this.dateSession = dateSession;
         this.matiere = matiere;
         this.classe = classe;
@@ -64,6 +66,17 @@ public class Evaluation {
 
     public void setSession(Session session) {
         this.session = session;
+    }
+
+    public int getSemestre() {
+        return semestre;
+    }
+
+    public void setSemestre(int semestre) {
+        if (semestre != 1 && semestre != 2) {
+            throw new IllegalArgumentException("Le semestre doit être 1 ou 2");
+        }
+        this.semestre = semestre;
     }
 
     public double getCoefficient() {
@@ -128,6 +141,7 @@ public class Evaluation {
                 ", libelle='" + libelle + '\'' +
                 ", type=" + type +
                 ", session=" + session +
+                ", semestre=" + semestre +
                 ", coefficient=" + coefficient +
                 ", dateSession=" + dateSession +
                 ", matiereId=" + matiereId +

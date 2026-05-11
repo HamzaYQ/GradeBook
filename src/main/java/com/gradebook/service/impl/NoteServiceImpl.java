@@ -46,7 +46,12 @@ public class NoteServiceImpl implements INoteService {
             throw new IllegalStateException(ERR_EVALUATION_INTROUVABLE);
         }
 
-        boolean autorise = coursDao.existsCours(idEnseignant, evaluation.getClasse().getId(), evaluation.getMatiere().getId());
+        boolean autorise = coursDao.existsCours(
+            idEnseignant,
+            evaluation.getClasse().getId(),
+            evaluation.getMatiere().getId(),
+            evaluation.getSemestre()
+        );
         if (!autorise) {
             throw new IllegalStateException(ERR_ENSEIGNANT_NON_AUTORISE);
         }
@@ -104,6 +109,16 @@ public class NoteServiceImpl implements INoteService {
     @Override
     public List<Note> getNotesByEtudiantAndMatiere(int idEtudiant, int idMatiere) {
         return noteDao.findByEtudiantAndMatiere(idEtudiant, idMatiere);
+    }
+
+    @Override
+    public List<Note> getNotesByEtudiantAndSemestre(int idEtudiant, int semestre) {
+        return noteDao.findByEtudiantAndSemestre(idEtudiant, semestre);
+    }
+
+    @Override
+    public List<Note> getNotesByEtudiantAndMatiereAndSemestre(int idEtudiant, int idMatiere, int semestre) {
+        return noteDao.findByEtudiantAndMatiereAndSemestre(idEtudiant, idMatiere, semestre);
     }
 
     @Override
