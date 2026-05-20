@@ -7,21 +7,28 @@ import java.util.List;
 public class ReleveDeNotes {
     private int id;
     private int semestre;
+    private int session;
     private String anneeAcademique;
     private double moyenneGenerale;
+    private String resultat;
     private LocalDateTime genereLe;
     private Etudiant etudiant;
     private Administration genereParAdmin;
     private List<LigneReleve> lignes;
 
     public ReleveDeNotes() {
+        this.session = 1;
+        this.resultat = "Validé";
         this.lignes = new ArrayList<>();
     }
 
-    public ReleveDeNotes(int id, int semestre, String anneeAcademique, Etudiant etudiant, Administration genereParAdmin) {
+    public ReleveDeNotes(int id, int semestre, int session, String anneeAcademique, String resultat,
+                         Etudiant etudiant, Administration genereParAdmin) {
         this.id = id;
         setSemestre(semestre);
+        setSession(session);
         this.anneeAcademique = anneeAcademique;
+        this.resultat = resultat;
         this.etudiant = etudiant;
         this.genereParAdmin = genereParAdmin;
         this.genereLe = LocalDateTime.now();
@@ -47,6 +54,17 @@ public class ReleveDeNotes {
         this.semestre = semestre;
     }
 
+    public int getSession() {
+        return session;
+    }
+
+    public void setSession(int session) {
+        if (session != 1 && session != 2) {
+            throw new IllegalArgumentException("La session doit être 1 ou 2");
+        }
+        this.session = session;
+    }
+
     public String getAnneeAcademique() {
         return anneeAcademique;
     }
@@ -61,6 +79,14 @@ public class ReleveDeNotes {
 
     public void setMoyenneGenerale(double moyenneGenerale) {
         this.moyenneGenerale = moyenneGenerale;
+    }
+
+    public String getResultat() {
+        return resultat;
+    }
+
+    public void setResultat(String resultat) {
+        this.resultat = resultat;
     }
 
     public LocalDateTime getGenereLe() {
@@ -113,8 +139,10 @@ public class ReleveDeNotes {
         return "ReleveDeNotes{" +
                 "id=" + id +
             ", semestre=" + semestre +
+                ", session=" + session +
                 ", anneeAcademique='" + anneeAcademique + '\'' +
                 ", moyenneGenerale=" + moyenneGenerale +
+                ", resultat='" + resultat + '\'' +
                 ", genereLe=" + genereLe +
                 ", etudiantId=" + etudiantId +
                 ", genereParAdminId=" + adminId +

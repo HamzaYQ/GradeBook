@@ -10,6 +10,8 @@ public interface IReleveDeNotesDao extends IDao<ReleveDeNotes> {
 
     Optional<ReleveDeNotes> findByEtudiantAndSemestre(int idEtudiant, int semestre);
 
+    Optional<ReleveDeNotes> findByEtudiantAndSemestreAndSession(int idEtudiant, int semestre, int session);
+
     List<ReleveDeNotes> findBySemestre(int semestre);
 
     List<ReleveDeNotes> findByClasse(int idClasse);

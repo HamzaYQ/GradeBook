@@ -97,7 +97,7 @@ public class AdministrationMainFrame extends javafx.application.Application {
     private void initPanels() {
         referentielPanel = new ReferentielPanel();
         affectationsPanel = new AffectationsPanel();
-        releverAdminPanel = new ReleverAdminPanel();
+        releverAdminPanel = new ReleverAdminPanel(administration);
         presenceAdminPanel = new PresenceAdminPanel();
     }
 

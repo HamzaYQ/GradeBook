@@ -92,7 +92,15 @@ public final class ServiceLocator {
             classeMatiereDao
         );
         presenceService = new PresenceServiceImpl(presenceDao, etudiantDao, matiereDao);
-        releveService = new ReleveServiceImpl(releveDao, calculService, matiereDao, etudiantDao, administrationDao);
+        releveService = new ReleveServiceImpl(
+            releveDao,
+            calculService,
+            matiereDao,
+            etudiantDao,
+            administrationDao,
+            evaluationDao,
+            noteDao
+        );
     }
 
     public static IAuthService getAuthService() {
